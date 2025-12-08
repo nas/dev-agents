@@ -1,0 +1,22 @@
+{
+  "name": "ai-ops",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:feature": "NODE_OPTIONS='--no-deprecation' node start-feature.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@inquirer/select": "^5.0.2",
+    "@linear/sdk": "^65.2.0",
+    "dotenv": "^17.2.3",
+    "inquirer": "^13.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1"
+  }
+}
