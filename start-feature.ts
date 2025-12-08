@@ -11,8 +11,8 @@ import fs from 'fs';
 // ==========================================
 const REPOS = {
   // UPDATE THESE PATHS TO MATCH YOUR ACTUAL FOLDERS
-  'Backend': '/Users/nas/projects/personal/payout-orchestrator/routing-engine', 
-  'Frontend': '/Users/yourname/projects/my-react-app',
+  'Backend': process.env.BACKEND_REPO_PATH,
+  'Frontend': process.env.FRONTEND_REPO_PATH,
 };
 
 // ==========================================
