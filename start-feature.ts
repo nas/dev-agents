@@ -29,7 +29,7 @@ async function main() {
     console.log("\n📋 Planning Phase...");
     console.log("Asking Aider to analyze and create an implementation plan...\n");
     
-    let planningPrompt = `Task: ${ticket.title}\nDescription: ${ticket.description}\n\nPlease analyze the existing project structure and coding patterns. Create a detailed implementation plan explaining:\n1. What files you will create or modify\n2. What changes you will make\n3. How you will follow the existing code style\n4. Any dependencies or considerations\n\nProvide ONLY the plan, do not implement yet.`;
+    let planningPrompt = `Task: ${ticket.title}\nDescription: ${ticket.description}\n\nPlease analyze the existing project structure and coding patterns. Create a detailed implementation plan explaining:\n1. What NEW files you will create (these don't exist yet, that's okay)\n2. What EXISTING files you will modify\n3. What changes you will make\n4. How you will follow the existing code style\n5. Any dependencies or considerations\n\nNote: It's fine if files mentioned in the plan don't exist yet - they will be created during implementation. Provide ONLY the plan, do not implement yet.`;
     
     let planApproved = false;
     let implementationPrompt = `Task: ${ticket.title}\nDescription: ${ticket.description}\n\nInstructions:\n1. Analyze the existing project structure and coding patterns.\n2. Implement this feature following the exact style of the repo.`;
@@ -55,7 +55,7 @@ async function main() {
         
         if (planDecision === 'approve') {
           planApproved = true;
-          implementationPrompt = `Task: ${ticket.title}\nDescription: ${ticket.description}\n\nApproved Implementation Plan:\n${planOutput}\n\nNow implement this feature according to the approved plan above. Follow the exact style of the repo and ensure all the steps outlined in the plan are completed.`;
+          implementationPrompt = `Task: ${ticket.title}\nDescription: ${ticket.description}\n\nApproved Implementation Plan:\n${planOutput}\n\nNow implement this feature according to the approved plan above.\n\nIMPORTANT INSTRUCTIONS:\n1. Create any NEW files mentioned in the plan that don't exist yet (create the full directory structure if needed)\n2. Modify any EXISTING files mentioned in the plan\n3. Follow the exact code style and patterns found in the existing codebase\n4. Ensure all steps outlined in the plan are completed`;
         } else if (planDecision === 'modify') {
           const modifications = await select({
             message: 'What modifications would you like?',
@@ -135,9 +135,17 @@ async function main() {
         console.error("❌ Git Error - make sure the path is a valid git repo.");
         process.exit(1);
       }
+
+      // 5. IMPLEMENTATION PHASE
+      console.log("\n🚀 Starting Implementation...");
+      console.log("Type '/exit' when you're done to finish the session.\n");
+      
+      await runAider(implementationPrompt, targetPath);
+      
+      console.log("\n✅ Implementation completed. Running tests...\n");
     }
 
-    // Test and fix loop
+    // 6. Test and fix loop
     let maxFixAttempts = 3;
     let attempt = 0;
     

@@ -8,7 +8,8 @@ export async function runAiderForPlan(prompt: string, targetPath: string): Promi
     '--message', prompt,
     '--dry-run', // Don't make any actual changes, just show what would be done
     '--yes-always', // Auto-accept file additions and other prompts during planning
-    '--no-auto-commits'
+    '--no-auto-commits',
+    '--add-gitignore-files' // Allow aider to work with files even if they're in gitignore (for planning)
   ];
   
   if (process.env.GOOGLE_API_KEY) {
