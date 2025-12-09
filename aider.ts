@@ -26,6 +26,14 @@ export async function runAiderForPlan(prompt: string, targetPath: string): Promi
       shell: false
     });
 
+    // Handle keyboard interrupts
+    const cleanup = () => {
+      if (!aiderProcess.killed) {
+        aiderProcess.kill('SIGINT');
+      }
+    };
+    process.on('SIGINT', cleanup);
+
     // Auto-answer "A" (all) to file addition prompts
     aiderProcess.stdin?.write('A\n');
     aiderProcess.stdin?.end();
@@ -43,7 +51,8 @@ export async function runAiderForPlan(prompt: string, targetPath: string): Promi
     });
 
     aiderProcess.on('exit', (code) => {
-      if (code === 0) {
+      process.removeListener('SIGINT', cleanup);
+      if (code === 0 || code === 130) { // 130 is SIGINT exit code
         resolve(output + errorOutput);
       } else {
         reject(new Error(`Aider exited with code ${code}. Output: ${output + errorOutput}`));
@@ -51,6 +60,7 @@ export async function runAiderForPlan(prompt: string, targetPath: string): Promi
     });
     
     aiderProcess.on('error', (error) => {
+      process.removeListener('SIGINT', cleanup);
       reject(error);
     });
   });
@@ -75,8 +85,17 @@ export async function runAider(prompt: string, targetPath: string): Promise<void
   });
 
   return new Promise<void>((resolve, reject) => {
+    // Handle keyboard interrupts
+    const cleanup = () => {
+      if (!aiderProcess.killed) {
+        aiderProcess.kill('SIGINT');
+      }
+    };
+    process.on('SIGINT', cleanup);
+
     aiderProcess.on('exit', (code) => {
-      if (code === 0) {
+      process.removeListener('SIGINT', cleanup);
+      if (code === 0 || code === 130) { // 130 is SIGINT exit code
         console.log("\n✅ Aider session completed.");
       } else {
         console.log(`\n⚠️  Aider exited with code ${code}.`);
@@ -85,6 +104,7 @@ export async function runAider(prompt: string, targetPath: string): Promise<void
     });
     
     aiderProcess.on('error', (error) => {
+      process.removeListener('SIGINT', cleanup);
       console.error("\n❌ Error starting Aider:", error.message);
       reject(error);
     });
