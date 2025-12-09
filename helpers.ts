@@ -1,7 +1,7 @@
 import { execSync } from 'child_process';
 import { REPOS } from './config';
 import fs from 'fs';
-import { select } from '@inquirer/prompts';
+import { select, input } from '@inquirer/prompts';
 import { Issue, LinearClient } from '@linear/sdk';
 
 // Helper to run commands in the target folder
@@ -39,7 +39,27 @@ export async function selectRepo(): Promise<string> {
     })),
   });
 
-  const targetPath = REPOS[repoKey];
+  let targetPath: string;
+  
+  if (repoKey === 'Other') {
+    // Prompt for custom path
+    targetPath = await input({
+      message: 'Enter the full path to the project:',
+      validate: (value: string) => {
+        if (!value.trim()) {
+          return 'Path cannot be empty';
+        }
+        return true;
+      }
+    });
+  } else {
+    const envPath = REPOS[repoKey];
+    if (!envPath) {
+      console.error(`\n❌ Path for ${repoKey} is not configured. Please check your environment variables.`);
+      process.exit(1);
+    }
+    targetPath = envPath;
+  }
   
   if (!fs.existsSync(targetPath)) {
     console.error(`❌ Path not found: ${targetPath}`);
