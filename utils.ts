@@ -25,6 +25,7 @@ Environment Variables:
   GOOGLE_API_KEY      Your Google AI API key for Gemini models
   ANTHROPIC_API_KEY   Your Anthropic API key for Claude models
   OPENAI_API_KEY      Your OpenAI API key for GPT models
+  DEEPSEEK_API_KEY    Your DeepSeek API key for DeepSeek models
   AIDER_API_KEY       Generic API key for other models (used as-is)
   AIDER_MODEL         Default AI model to use with aider (overrides default)
 
@@ -127,8 +128,8 @@ export function validateEnvironment(): string[] {
   }
   
   // Check for at least one API key if using AI models
-  if (!process.env.GOOGLE_API_KEY && !process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY && !process.env.AIDER_API_KEY) {
-    warnings.push('No AI API key found. Set GOOGLE_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY, or AIDER_API_KEY');
+  if (!process.env.GOOGLE_API_KEY && !process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY && !process.env.DEEPSEEK_API_KEY && !process.env.AIDER_API_KEY) {
+    warnings.push('No AI API key found. Set GOOGLE_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY, DEEPSEEK_API_KEY, or AIDER_API_KEY');
   }
   
   try {

@@ -30,6 +30,14 @@ function getApiKeyArgs(model: string): string[] {
       console.warn(`⚠️  OPENAI_API_KEY not set for OpenAI model: ${model}`);
     }
   }
+  // Check for DeepSeek models
+  else if (model.includes('deepseek')) {
+    if (process.env.DEEPSEEK_API_KEY) {
+      args.push('--api-key', `deepseek=${process.env.DEEPSEEK_API_KEY}`);
+    } else {
+      console.warn(`⚠️  DEEPSEEK_API_KEY not set for DeepSeek model: ${model}`);
+    }
+  }
   // For other models, check for a generic API key
   else if (process.env.AIDER_API_KEY) {
     args.push('--api-key', process.env.AIDER_API_KEY);
