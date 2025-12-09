@@ -21,9 +21,12 @@ Options:
   --model <name>  Override the AI model used by aider (default: gemini-2.5-pro)
 
 Environment Variables:
-  LINEAR_API_KEY  Your Linear API key
-  GOOGLE_API_KEY  Your Google AI API key for Gemini
-  AIDER_MODEL     Default AI model to use with aider (overrides default)
+  LINEAR_API_KEY      Your Linear API key
+  GOOGLE_API_KEY      Your Google AI API key for Gemini models
+  ANTHROPIC_API_KEY   Your Anthropic API key for Claude models
+  OPENAI_API_KEY      Your OpenAI API key for GPT models
+  AIDER_API_KEY       Generic API key for other models (used as-is)
+  AIDER_MODEL         Default AI model to use with aider (overrides default)
 
 Workflow:
   1. Select a repository
@@ -117,13 +120,15 @@ export function getChangedFiles(cwd: string): string[] {
 // Validate environment
 export function validateEnvironment(): string[] {
   const errors: string[] = [];
+  const warnings: string[] = [];
   
   if (!process.env.LINEAR_API_KEY) {
     errors.push('LINEAR_API_KEY environment variable is not set');
   }
   
-  if (!process.env.GOOGLE_API_KEY) {
-    errors.push('GOOGLE_API_KEY environment variable is not set');
+  // Check for at least one API key if using AI models
+  if (!process.env.GOOGLE_API_KEY && !process.env.ANTHROPIC_API_KEY && !process.env.OPENAI_API_KEY && !process.env.AIDER_API_KEY) {
+    warnings.push('No AI API key found. Set GOOGLE_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY, or AIDER_API_KEY');
   }
   
   try {
@@ -136,6 +141,13 @@ export function validateEnvironment(): string[] {
     execSync('which gh', { stdio: 'pipe' });
   } catch {
     errors.push('GitHub CLI (gh) not found. Install from: https://cli.github.com');
+  }
+  
+  // Show warnings but don't treat them as errors
+  if (warnings.length > 0) {
+    console.warn('\n⚠️  Environment warnings:');
+    warnings.forEach(warning => console.warn(`   - ${warning}`));
+    console.warn('\n   You may need to set appropriate API keys for your chosen model.\n');
   }
   
   return errors;

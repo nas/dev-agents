@@ -2,6 +2,42 @@ import 'dotenv/config';
 import { spawn } from 'child_process';
 import { DEFAULT_MODEL } from './config';
 
+// Helper to get API key configuration based on model
+function getApiKeyArgs(model: string): string[] {
+  const args: string[] = [];
+  
+  // Check for Google/Gemini models
+  if (model.includes('gemini') || model.includes('google')) {
+    if (process.env.GOOGLE_API_KEY) {
+      args.push('--api-key', `google=${process.env.GOOGLE_API_KEY}`);
+    } else {
+      console.warn(`⚠️  GOOGLE_API_KEY not set for Gemini model: ${model}`);
+    }
+  }
+  // Check for Anthropic/Claude models
+  else if (model.includes('claude') || model.includes('anthropic')) {
+    if (process.env.ANTHROPIC_API_KEY) {
+      args.push('--api-key', `anthropic=${process.env.ANTHROPIC_API_KEY}`);
+    } else {
+      console.warn(`⚠️  ANTHROPIC_API_KEY not set for Claude model: ${model}`);
+    }
+  }
+  // Check for OpenAI models
+  else if (model.includes('gpt') || model.includes('openai')) {
+    if (process.env.OPENAI_API_KEY) {
+      args.push('--api-key', `openai=${process.env.OPENAI_API_KEY}`);
+    } else {
+      console.warn(`⚠️  OPENAI_API_KEY not set for OpenAI model: ${model}`);
+    }
+  }
+  // For other models, check for a generic API key
+  else if (process.env.AIDER_API_KEY) {
+    args.push('--api-key', process.env.AIDER_API_KEY);
+  }
+  
+  return args;
+}
+
 // Helper to run aider with a specific prompt and capture output (planning only, no changes)
 export async function runAiderForPlan(prompt: string, targetPath: string, model?: string): Promise<string> {
   const modelToUse = model || DEFAULT_MODEL;
@@ -14,9 +50,8 @@ export async function runAiderForPlan(prompt: string, targetPath: string, model?
     '--add-gitignore-files' // Allow aider to work with files even if they're in gitignore (for planning)
   ];
   
-  if (process.env.GOOGLE_API_KEY) {
-    aiderArgs.push('--api-key', `google=${process.env.GOOGLE_API_KEY}`);
-  }
+  // Add API key configuration based on the model
+  aiderArgs.push(...getApiKeyArgs(modelToUse));
   
   return new Promise<string>((resolve, reject) => {
     let output = '';
@@ -77,9 +112,8 @@ export async function runAider(prompt: string, targetPath: string, model?: strin
     '--auto-commits'
   ];
   
-  if (process.env.GOOGLE_API_KEY) {
-    aiderArgs.push('--api-key', `google=${process.env.GOOGLE_API_KEY}`);
-  }
+  // Add API key configuration based on the model
+  aiderArgs.push(...getApiKeyArgs(modelToUse));
   
   const aiderProcess = spawn('aider', aiderArgs, {
     cwd: targetPath,
