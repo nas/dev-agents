@@ -18,10 +18,12 @@ Options:
   --dry-run       Preview what would happen without making changes
   --skip-tests    Skip running tests after implementation
   --no-pr         Skip creating a PR at the end
+  --model <name>  Override the AI model used by aider (default: gemini-2.5-pro)
 
 Environment Variables:
   LINEAR_API_KEY  Your Linear API key
   GOOGLE_API_KEY  Your Google AI API key for Gemini
+  AIDER_MODEL     Default AI model to use with aider (overrides default)
 
 Workflow:
   1. Select a repository

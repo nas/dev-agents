@@ -28,6 +28,13 @@ async function main() {
   const skipTests = process.argv.includes('--skip-tests');
   const skipPR = process.argv.includes('--no-pr');
   const dryRun = process.argv.includes('--dry-run');
+  
+  // Parse model flag: --model <model-name>
+  let modelOverride: string | undefined;
+  const modelIndex = process.argv.indexOf('--model');
+  if (modelIndex !== -1 && modelIndex + 1 < process.argv.length) {
+    modelOverride = process.argv[modelIndex + 1];
+  }
 
   if (dryRun) {
     console.log("🚧 DRY RUN MODE - No changes will be made\n");
@@ -38,6 +45,7 @@ async function main() {
   if (skipTests) console.log("   ⚠️  Tests will be skipped");
   if (skipPR) console.log("   ⚠️  PR creation will be skipped");
   if (dryRun) console.log("   ⚠️  Dry run - no actual changes");
+  if (modelOverride) console.log(`   🤖 Using model: ${modelOverride}`);
 
   // Validate environment
   const envErrors = validateEnvironment();
@@ -95,7 +103,7 @@ async function main() {
     
     while (!planApproved) {
       try {
-        const planOutput = await runAiderForPlan(planningPrompt, targetPath);
+        const planOutput = await runAiderForPlan(planningPrompt, targetPath, modelOverride);
         planningProgress.stop("Plan generated successfully!");
         
         console.log("\n" + "=".repeat(60));
@@ -184,6 +192,7 @@ async function main() {
       console.log("Would have:");
       console.log(`  - Created branch: ${branchName}`);
       console.log(`  - Used prompt: ${implementationPrompt.substring(0, 100)}...`);
+      console.log(`  - Model: ${modelOverride || 'gemini-2.5-pro (default)'}`);
       console.log(`  - ${skipTests ? 'Skipped tests' : 'Run tests'}`);
       console.log(`  - ${skipPR ? 'Skipped PR creation' : 'Created PR'}`);
       process.exit(0);
@@ -221,7 +230,7 @@ async function main() {
       const implementationProgress = new ProgressIndicator();
       implementationProgress.start('Aider is implementing the feature...');
       
-      await runAider(implementationPrompt, targetPath);
+      await runAider(implementationPrompt, targetPath, modelOverride);
       
       implementationProgress.stop('Implementation completed');
       
@@ -280,7 +289,7 @@ async function main() {
         const fixPrompt = `The tests are failing. Here's the test output:\n\n${testResult.output}\n\nPlease analyze the test failures and fix the issues to make all tests pass.`;
           
         console.log(`\n🔧 Asking Aider to fix test failures (attempt ${attempt + 1}/${maxFixAttempts})...`);
-        await runAider(fixPrompt, targetPath);
+        await runAider(fixPrompt, targetPath, modelOverride);
       }
     }
 

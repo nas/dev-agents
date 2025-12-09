@@ -1,10 +1,12 @@
 import 'dotenv/config';
 import { spawn } from 'child_process';
+import { DEFAULT_MODEL } from './config';
 
 // Helper to run aider with a specific prompt and capture output (planning only, no changes)
-export async function runAiderForPlan(prompt: string, targetPath: string): Promise<string> {
+export async function runAiderForPlan(prompt: string, targetPath: string, model?: string): Promise<string> {
+  const modelToUse = model || DEFAULT_MODEL;
   const aiderArgs: string[] = [
-    '--model', 'gemini-2.5-pro',
+    '--model', modelToUse,
     '--message', prompt,
     '--dry-run', // Don't make any actual changes, just show what would be done
     '--yes-always', // Auto-accept file additions and other prompts during planning
@@ -67,9 +69,10 @@ export async function runAiderForPlan(prompt: string, targetPath: string): Promi
 }
 
 // Helper to run aider with a specific prompt (for implementation)
-export async function runAider(prompt: string, targetPath: string): Promise<void> {
+export async function runAider(prompt: string, targetPath: string, model?: string): Promise<void> {
+  const modelToUse = model || DEFAULT_MODEL;
   const aiderArgs: string[] = [
-    '--model', 'gemini-2.5-pro',
+    '--model', modelToUse,
     '--message', prompt,
     '--auto-commits'
   ];

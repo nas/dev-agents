@@ -8,3 +8,6 @@ export const REPOS = {
   'Frontend': process.env.FRONTEND_REPO_PATH,
   'Other': null, // Custom path will be entered by user
 };
+
+// Default AI model to use
+export const DEFAULT_MODEL = process.env.AIDER_MODEL || 'gemini-2.5-pro';
