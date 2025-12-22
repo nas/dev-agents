@@ -36,6 +36,13 @@ async function main() {
     modelOverride = process.argv[modelIndex + 1];
   }
 
+  // Parse editor model flag: --editor-model <model-name>
+  let editorModelOverride: string | undefined;
+  const editorModelIndex = process.argv.indexOf('--editor-model');
+  if (editorModelIndex !== -1 && editorModelIndex + 1 < process.argv.length) {
+    editorModelOverride = process.argv[editorModelIndex + 1];
+  }
+
   if (dryRun) {
     console.log("🚧 DRY RUN MODE - No changes will be made\n");
   }
@@ -46,6 +53,7 @@ async function main() {
   if (skipPR) console.log("   ⚠️  PR creation will be skipped");
   if (dryRun) console.log("   ⚠️  Dry run - no actual changes");
   if (modelOverride) console.log(`   🤖 Using model: ${modelOverride}`);
+  if (editorModelOverride) console.log(`   🤖 Using editor model: ${editorModelOverride}`);
 
   // Validate environment
   const envErrors = validateEnvironment();
@@ -103,7 +111,7 @@ async function main() {
     
     while (!planApproved) {
       try {
-        const planOutput = await runAiderForPlan(planningPrompt, targetPath, modelOverride);
+        const planOutput = await runAiderForPlan(planningPrompt, targetPath, modelOverride, editorModelOverride);
         planningProgress.stop("Plan generated successfully!");
         
         console.log("\n" + "=".repeat(60));

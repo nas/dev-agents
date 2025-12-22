@@ -11,3 +11,4 @@ export const REPOS = {
 
 // Default AI model to use
 export const DEFAULT_MODEL = process.env.AIDER_MODEL || 'gemini-2.5-pro';
+export const DEFAULT_EDITOR_MODEL = process.env.AIDER_EDITOR_MODEL || 'deepseek-coder';

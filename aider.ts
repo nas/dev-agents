@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { spawn } from 'child_process';
-import { DEFAULT_MODEL } from './config';
+import { DEFAULT_MODEL, DEFAULT_EDITOR_MODEL } from './config';
 
 // Helper to get API key configuration based on model
 function getApiKeyArgs(model: string): string[] {
@@ -47,10 +47,13 @@ function getApiKeyArgs(model: string): string[] {
 }
 
 // Helper to run aider with a specific prompt and capture output (planning only, no changes)
-export async function runAiderForPlan(prompt: string, targetPath: string, model?: string): Promise<string> {
+export async function runAiderForPlan(prompt: string, targetPath: string, model?: string, editorModel?: string): Promise<string> {
   const modelToUse = model || DEFAULT_MODEL;
+  const editorModelToUse = editorModel || DEFAULT_EDITOR_MODEL;
   const aiderArgs: string[] = [
-    '--model', modelToUse,
+    '--architect', // Use architect mode
+    '--model', modelToUse, // Architect model (gemini-2.5-pro)
+    '--editor-model', editorModelToUse, // Editor model (deepseek)
     '--message', prompt,
     '--dry-run', // Don't make any actual changes, just show what would be done
     '--yes-always', // Auto-accept file additions and other prompts during planning
@@ -60,6 +63,7 @@ export async function runAiderForPlan(prompt: string, targetPath: string, model?
   
   // Add API key configuration based on the model
   aiderArgs.push(...getApiKeyArgs(modelToUse));
+  aiderArgs.push(...getApiKeyArgs(editorModelToUse));
   
   return new Promise<string>((resolve, reject) => {
     let output = '';
