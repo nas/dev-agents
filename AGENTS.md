@@ -1,6 +1,6 @@
 # Repository Guidelines
 
-// Hello World
+<!-- Hello World -->
 
 ## Project Structure & Module Organization
 - `bin/ai-ops.ts` is the main entrypoint that orchestrates the workflow.
