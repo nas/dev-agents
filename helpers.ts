@@ -1,5 +1,5 @@
 import { execSync } from 'child_process';
-import { REPOS } from './config';
+import { ConfigManager } from './lib/ConfigManager';
 import fs from 'fs';
 import { select, input } from '@inquirer/prompts';
 import { Issue, LinearClient } from '@linear/sdk';
@@ -30,10 +30,17 @@ export function runTests(cwd: string): { passed: boolean; output: string } {
   }
 }
 
-export async function selectRepo(): Promise<string> {
+export async function selectRepo(configManager: ConfigManager): Promise<string> {
+  const config = configManager.getConfig();
+  const repos = {
+      'Backend': config.backendRepoPath,
+      'Frontend': config.frontendRepoPath,
+      'Other': null
+  };
+
   const repoKey = await select({
     message: 'Select Project:',
-    choices: Object.keys(REPOS).map(key => ({
+    choices: Object.keys(repos).map(key => ({
       name: key,
       value: key
     })),
@@ -53,7 +60,7 @@ export async function selectRepo(): Promise<string> {
       }
     });
   } else {
-    const envPath = REPOS[repoKey];
+    const envPath = repos[repoKey];
     if (!envPath) {
       console.error(`\n❌ Path for ${repoKey} is not configured. Please check your environment variables.`);
       process.exit(1);
