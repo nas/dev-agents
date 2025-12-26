@@ -1,3 +1,4 @@
+import { select, input } from '@inquirer/prompts';
 import { Issue } from '@linear/sdk';
 import { runInRepo, selectRepo, selectTicket } from '../../helpers';
 import { ConfigManager } from '../ConfigManager';
@@ -63,19 +64,59 @@ export async function loadTicketContext(options: {
   }
 
   const targetPath = await selectRepo(configManager);
-  const ticket = await selectTicket();
 
-  if (!ticket) {
-    console.log('❌ No ticket selected. Exiting...');
-    process.exit(1);
+  const choice = await select({
+    message: 'What would you like to do?',
+    choices: [
+      { name: 'Select a Linear Ticket', value: 'linear' },
+      { name: 'Describe a new task', value: 'task' },
+    ],
+  });
+
+  let ticket: Issue | undefined;
+  let taskString: string;
+
+  if (choice === 'linear') {
+    ticket = await selectTicket();
+
+    if (!ticket) {
+      console.log('❌ No ticket selected. Exiting...');
+      process.exit(1);
+    }
+    taskString = buildTaskFromTicket(ticket);
+    console.log(`\n✅ Selected: ${ticket.identifier} - ${ticket.title}`);
+  } else { // choice === 'task'
+    const taskInput = await input({
+      message: 'Enter your task in the format "Title:Description":',
+      validate: (value: string) => {
+        if (!value.includes(':') || value.split(':').length < 2) {
+          return 'Please use the format "Title:Description"';
+        }
+        return true;
+      },
+    });
+
+    const [title, description] = taskInput.split(':', 2);
+
+    const adhocIdentifier = `ADHOC-${Date.now().toString().slice(-6)}`;
+    const slug = title.trim().toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 50);
+
+    ticket = {
+      id: adhocIdentifier, // Placeholder for Linear ID
+      identifier: adhocIdentifier,
+      title: title.trim(),
+      description: description.trim(),
+      branchName: `feature/${adhocIdentifier}-${slug}`,
+    } as Issue;
+
+    taskString = buildTaskFromTicket(ticket);
+    console.log(`\n✅ Ad-hoc task created: ${ticket.title}`);
   }
-
-  console.log(`\n✅ Selected: ${ticket.identifier} - ${ticket.title}`);
 
   return {
     configManager,
     targetPath,
     ticket,
-    task: buildTaskFromTicket(ticket)
+    task: taskString,
   };
 }
