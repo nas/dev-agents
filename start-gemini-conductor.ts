@@ -10,6 +10,7 @@ type GeminiConductorOptions = {
   approvalMode?: ApprovalMode;
   extensions: string[];
   debug?: boolean;
+  allowedTools?: string[];
 };
 
 type ParsedArgs = {
@@ -31,6 +32,8 @@ Options:
   --task <text>              Task description (positional also supported)
   --model <name>             Gemini model override
   --extensions <list>        Comma-separated extensions (default: conductor)
+  --allowed-tools <list>     Comma-separated tools to allow in non-interactive mode
+                             (default for implementation: run_shell_command,write_file,replace)
   --approval-mode <mode>     default | auto_edit | yolo
   --yolo                     Shortcut for --approval-mode yolo
   --debug                    Enable Gemini CLI debug logging
@@ -47,11 +50,19 @@ function normalizeExtensions(extensions?: string[]): string[] {
   return unique;
 }
 
+function normalizeTools(tools?: string[]): string[] {
+  if (!tools) {
+    return [];
+  }
+  return Array.from(new Set(tools.map((item) => item.trim()).filter(Boolean)));
+}
+
 function parseArgs(argv: string[]): ParsedArgs {
   let task: string | undefined;
   let model: string | undefined;
   let approvalMode: ApprovalMode | undefined;
   let extensions: string[] | undefined;
+  let allowedTools: string[] | undefined;
   let debug = false;
   let showHelp = false;
   let yolo = false;
@@ -107,6 +118,16 @@ function parseArgs(argv: string[]): ParsedArgs {
       continue;
     }
 
+    if (arg === '--allowed-tools') {
+      const value = argv[i + 1];
+      if (!value) {
+        throw new Error('Missing value for --allowed-tools.');
+      }
+      allowedTools = value.split(',');
+      i += 1;
+      continue;
+    }
+
     if (arg === '--yolo') {
       yolo = true;
       continue;
@@ -141,7 +162,8 @@ function parseArgs(argv: string[]): ParsedArgs {
       model,
       approvalMode,
       extensions: normalizeExtensions(extensions),
-      debug
+      debug,
+      allowedTools: normalizeTools(allowedTools)
     },
     showHelp
   };
@@ -199,12 +221,19 @@ function buildGeminiArgs(options: GeminiConductorOptions, extraArgs: string[] = 
   if (options.approvalMode) {
     args.push('--approval-mode', options.approvalMode);
   }
+  if (options.allowedTools && options.allowedTools.length > 0) {
+    args.push('--allowed-tools', options.allowedTools.join(','));
+  }
   args.push(...extraArgs);
   return args;
 }
 
 async function runGeminiConductorPlan(prompt: string, options: GeminiConductorOptions): Promise<string> {
-  const args = buildGeminiArgs(options, ['--output-format', 'text']);
+  const planOptions: GeminiConductorOptions = {
+    ...options,
+    allowedTools: []
+  };
+  const args = buildGeminiArgs(planOptions, ['--output-format', 'text']);
   args.push(prompt);
 
   return new Promise<string>((resolve, reject) => {
@@ -233,7 +262,13 @@ async function runGeminiConductorPlan(prompt: string, options: GeminiConductorOp
 }
 
 async function runGeminiConductorImplementation(prompt: string, options: GeminiConductorOptions): Promise<void> {
-  const args = buildGeminiArgs(options);
+  const implementationOptions: GeminiConductorOptions = {
+    ...options,
+    allowedTools: options.allowedTools && options.allowedTools.length > 0
+      ? options.allowedTools
+      : ['run_shell_command', 'write_file', 'replace']
+  };
+  const args = buildGeminiArgs(implementationOptions);
   args.push(prompt);
 
   return new Promise<void>((resolve, reject) => {
