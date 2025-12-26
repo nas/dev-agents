@@ -3,11 +3,16 @@ import { runFeature } from '../lib/commands/aider';
 import { runConductor } from '../lib/commands/conductor';
 import { runCodex } from '../lib/commands/codex';
 import { runAgent } from '../lib/commands/agent';
+import { showHelp } from '../utils';
 
 const command = process.argv[2];
-const args = process.argv.slice(3);
 
 async function main() {
+  if (command === '--help' || command === '-h' || !command) {
+    showHelp();
+    process.exit(command ? 0 : 1);
+  }
+
   switch (command) {
     case 'aider':
       await runFeature(process.argv.slice(2)); // Pass all args including flags
@@ -22,15 +27,7 @@ async function main() {
       await runAgent(process.argv.slice(2));
       break;
     default:
-      console.log(`
-Usage: ai-ops <command> [options]
-
-Commands:
-  aider       Start the Aider Feature Builder
-  conductor   Start the Gemini Conductor
-  codex       Start the Codex Builder
-  agent       Choose an agent to run
-      `);
+      showHelp();
       process.exit(1);
   }
 }
