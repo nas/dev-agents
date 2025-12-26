@@ -1,12 +1,15 @@
-import { confirm } from '@inquirer/prompts';
+import { AmpAgent } from '../agents/AmpAgent';
+import { PlanningLoop } from '../PlanningLoop';
+import { runTests } from '../../helpers';
 import { SummaryReport, generateSummary, getChangedFiles } from '../../utils';
 import { buildBranchName, ensureFeatureBranch, loadTicketContext } from './ticketFlow';
 import { runPostImplementation } from './postImplementation';
-import { runTests } from '../../helpers';
+import { select } from '@inquirer/prompts';
 
 export async function runAmp(argv: string[]) {
   const skipTests = argv.includes('--skip-tests');
   const skipPR = argv.includes('--no-pr');
+  let dangerouslyAllowAll = argv.includes('--dangerous');
 
   const { targetPath, ticket, task, ticketDescription } = await loadTicketContext({
     requireAider: false,
@@ -29,73 +32,92 @@ export async function runAmp(argv: string[]) {
 
   const branchName = buildBranchName(ticket);
 
-  try {
-    console.log('\n' + '='.repeat(60));
-    console.log('AMP AGENT - HYBRID WORKFLOW');
-    console.log('='.repeat(60));
-    console.log(`\nTicket: ${ticket.identifier} - ${ticket.title}`);
-    console.log(`Branch: ${branchName}`);
-    console.log(`Target: ${targetPath}`);
-    console.log(`\nTask:\n${task}\n`);
+  const agent = new AmpAgent({
+    cwd: targetPath,
+    dangerouslyAllowAll
+  });
 
-    // Create feature branch
-    summary.planApproved = true;
-    summary.branchName = branchName;
-    ensureFeatureBranch(targetPath, ticket);
-    console.log(`✅ Feature branch created: ${branchName}`);
+  const loop = new PlanningLoop(agent, {
+    onPlanApproved: async () => {
+      summary.planApproved = true;
+      summary.branchName = branchName;
+      ensureFeatureBranch(targetPath, ticket);
+    },
+    afterImplementation: async () => {
+      summary.changedFiles = getChangedFiles(targetPath);
 
-    // Direct user to Amp thread
-    console.log('\n' + '-'.repeat(60));
-    console.log('📝 NEXT STEP: Go to your Amp thread and paste this task:');
-    console.log('-'.repeat(60));
-    console.log(`\nImplement this task:\n\n${task}`);
-    console.log('\n' + '-'.repeat(60));
-
-    // Wait for implementation completion
-    const implemented = await confirm({
-      message: 'Have you completed the implementation in the Amp thread?',
-      default: false
-    });
-
-    if (!implemented) {
-      console.log('Exiting without changes.');
-      return;
-    }
-
-    // Run tests if not skipped
-    if (skipTests) {
-      console.log("\n⏭️  Skipping tests as requested (--skip-tests)");
-      summary.testPassed = true;
-    } else {
-      console.log("\n🧪 Running tests...\n");
-      const testResult = runTests(targetPath);
-      
-      if (!testResult.passed) {
-        console.log("\n⚠️  Tests failed. You may need to fix issues in the Amp thread.");
-        const fixedTests = await confirm({
-          message: 'Have you fixed the test failures in the Amp thread?',
-          default: false
-        });
-        summary.testPassed = fixedTests;
-      } else {
+      if (skipTests) {
+        console.log("\n⏭️  Skipping tests as requested (--skip-tests)");
         summary.testPassed = true;
+      } else {
+        // Test loop
+        let maxFixAttempts = 3;
+        let attempt = 0;
+        console.log("\n🧪 Starting test verification phase...\n");
+
+        while (attempt < maxFixAttempts) {
+          const testResult = runTests(targetPath);
+          if (testResult.passed) {
+            summary.testPassed = true;
+            summary.testAttempts = attempt + 1;
+            break;
+          }
+
+          console.log("\n❌ Tests failed. Attempting to fix...\n");
+          attempt++;
+          summary.testAttempts = attempt;
+
+          if (attempt >= maxFixAttempts) {
+            const continueFix = await select({
+              message: 'Tests are still failing. Continue fixing?',
+              choices: [
+                { name: 'Yes, try again', value: 'y' },
+                { name: 'No, proceed anyway', value: 'n' }
+              ]
+            });
+            if (continueFix === 'n') break;
+            attempt = 0;
+          }
+
+          // Ask agent to fix
+          const fixPrompt = `The tests are failing. Here's the test output:\n\n${testResult.output}\n\nPlease analyze the test failures and fix the issues to make all tests pass.`;
+
+          try {
+            const { execute } = await import('@sourcegraph/amp-sdk');
+            for await (const message of execute({
+              prompt: fixPrompt,
+              options: {
+                cwd: targetPath,
+                dangerouslyAllowAll: dangerouslyAllowAll ?? true
+              }
+            })) {
+              if (message.type === 'result') {
+                if (message.is_error) {
+                  console.error(`Fix attempt failed: ${message.error}`);
+                }
+                break;
+              }
+            }
+          } catch (error: any) {
+            console.error(`Error running fix: ${error.message}`);
+          }
+        }
       }
+
+      const postResult = await runPostImplementation({
+        targetPath,
+        ticket,
+        skipPr: skipPR,
+        ticketDescription
+      });
+      summary.prCreated = postResult.prCreated;
     }
+  });
 
-    summary.changedFiles = getChangedFiles(targetPath);
-
-    // Post-implementation
-    const postResult = await runPostImplementation({
-      targetPath,
-      ticket,
-      skipPr: skipPR,
-      ticketDescription
-    });
-    summary.prCreated = postResult.prCreated;
-
-    console.log('\n✅ Implementation workflow completed.');
+  try {
+    await loop.run(task);
   } catch (e) {
-    console.error('Error:', e);
+    // ignore
   } finally {
     summary.endTime = new Date();
     generateSummary(summary);
