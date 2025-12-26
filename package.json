@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "vitest run --coverage",
-    "feature": "NODE_OPTIONS='--no-deprecation' npx tsx bin/ai-ops.ts feature",
+    "aider": "NODE_OPTIONS='--no-deprecation' npx tsx bin/ai-ops.ts aider",
     "conductor": "npx tsx bin/ai-ops.ts conductor",
     "codex": "npx tsx bin/ai-ops.ts codex",
     "agent": "npx tsx bin/ai-ops.ts agent"

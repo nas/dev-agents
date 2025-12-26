@@ -13,7 +13,7 @@
 
 1. **Start a command:**
    - `npm run conductor` or `npx tsx bin/ai-ops.ts conductor` (Gemini Conductor)
-   - `npx tsx bin/ai-ops.ts aider` (Aider builder; `npm run feature` targets a legacy command)
+   - `npm run feature`, `npx tsx bin/ai-ops.ts feature`, or `npx tsx bin/ai-ops.ts aider` (Aider builder)
    - `npm run codex` or `npx tsx bin/ai-ops.ts codex` (Codex)
    - `npm run agent` or `npx tsx bin/ai-ops.ts agent` (pick an agent interactively)
 2. **Validate environment:**
