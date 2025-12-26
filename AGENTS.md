@@ -3,7 +3,7 @@
 ## Project Structure & Module Organization
 - `bin/ai-ops.ts` is the main entrypoint that orchestrates the workflow.
 - `lib/` contains the core logic:
-  - `lib/agents/`: Multi-agent implementations (Aider, Gemini, Codex).
+  - `lib/agents/`: Multi-agent implementations (Aider, Gemini, Codex, Amp).
   - `lib/commands/`: CLI command handlers.
   - `lib/ConfigManager.ts`: Centralized configuration and model management.
   - `lib/PlanningLoop.ts`: Orchestrates the plan-approve-implement loop.
@@ -15,6 +15,7 @@
 - `npm run aider` or `npx tsx bin/ai-ops.ts aider` runs the Aider feature builder.
 - `npm run conductor` or `npx tsx bin/ai-ops.ts conductor` runs the Gemini conductor.
 - `npm run codex` or `npx tsx bin/ai-ops.ts codex` runs the Codex builder.
+- `npm run amp` or `npx tsx bin/ai-ops.ts amp` runs the Amp agent (this agent).
 - `npm run agent` or `npx tsx bin/ai-ops.ts agent` allows interactive agent selection.
 - `npm test` runs unit tests using `vitest`.
 

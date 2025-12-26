@@ -2,6 +2,7 @@ import { select } from '@inquirer/prompts';
 import { runConductor } from './conductor';
 import { runCodex } from './codex';
 import { runFeature } from './aider';
+import { runAmp } from './amp';
 import { showHelp } from '../../utils';
 
 type AgentChoice = {
@@ -32,7 +33,8 @@ const AGENTS: AgentChoice[] = [
       'gpt-5.1-codex-mini',
       'gpt-5.2'
     ]
-  }
+  },
+  { name: 'Amp Agent', runner: runAmp }
 ];
 
 function splitArgs(argv: string[]): { launcherArgs: string[]; passThrough: string[] } {

@@ -2,6 +2,7 @@
 import { runFeature } from '../lib/commands/aider';
 import { runConductor } from '../lib/commands/conductor';
 import { runCodex } from '../lib/commands/codex';
+import { runAmp } from '../lib/commands/amp';
 import { runAgent } from '../lib/commands/agent';
 import { showHelp } from '../utils';
 
@@ -22,6 +23,9 @@ async function main() {
       break;
     case 'codex':
       await runCodex(process.argv.slice(2));
+      break;
+    case 'amp':
+      await runAmp(process.argv.slice(2));
       break;
     case 'agent':
       await runAgent(process.argv.slice(2));

@@ -16,6 +16,7 @@ Commands:
   aider       Start the Aider feature builder
   conductor   Start the Gemini conductor
   codex       Start the Codex builder
+  amp         Start the Amp agent
   agent       Choose an agent to run
 
 Global Options:
@@ -39,6 +40,10 @@ Conductor Options:
 Codex Options:
   --model <name>   Override the Codex model
   --profile <name> Use a Codex profile
+  --no-pr          Skip creating a PR at the end
+
+Amp Options:
+  --skip-tests     Skip running tests after implementation
   --no-pr          Skip creating a PR at the end
 
 Agent Options:
