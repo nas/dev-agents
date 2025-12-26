@@ -96,6 +96,11 @@ If tests are available, run them and fix failures.`;
     };
     const args = this.buildArgs(implementationOptions, [prompt]);
 
-    await ProcessRunner.run('gemini', args, { cwd: this.options.cwd, stdio: 'inherit' });
+    // Use piped stdio to ensure proper output handling and allow input if needed
+    await ProcessRunner.run('gemini', args, { 
+      cwd: this.options.cwd,
+      onOutput: (data) => process.stdout.write(data),
+      onErrorOutput: (data) => process.stderr.write(data)
+    });
   }
 }

@@ -54,6 +54,11 @@ export class AiderAgent implements Agent {
 
     args.push(...this.configManager.getApiKeyArgs(model));
 
-    await ProcessRunner.run('aider', args, { cwd: this.cwd, stdio: 'inherit' });
+    // Use piped stdio to ensure proper output handling and allow input if needed
+    await ProcessRunner.run('aider', args, { 
+      cwd: this.cwd,
+      onOutput: (data) => process.stdout.write(data),
+      onErrorOutput: (data) => process.stderr.write(data)
+    });
   }
 }
