@@ -3,7 +3,7 @@
 This plan outlines the steps to create `run-conductor.ts`, an interactive wrapper for the Gemini Conductor CLI.
 
 ## Phase 1: Setup and Scaffolding
-- [ ] Task: Create feature branch `feature/run-conductor-script`
+- [~] Task: Create feature branch `feature/run-conductor-script`
 - [ ] Task: Create initial `run-conductor.ts` with basic boilerplate (imports, `dotenv`, `main` function)
     - [ ] Write Tests: Verify `dotenv` is loaded and `main` is called.
     - [ ] Implement Feature: Basic script structure.
