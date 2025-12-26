@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:feature": "NODE_OPTIONS='--no-deprecation' node start-feature.ts"
+    "start:feature": "NODE_OPTIONS='--no-deprecation' npx tsx start-feature.ts",
+    "start:codex": "npx tsx start-codex.ts"
   },
   "keywords": [],
   "author": "",
