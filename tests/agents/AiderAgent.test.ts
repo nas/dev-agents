@@ -54,7 +54,11 @@ describe('AiderAgent', () => {
               '--model', 'default-model',
               '--auto-commits'
           ]),
-          expect.objectContaining({ cwd: 'cwd', stdio: 'inherit' })
+          expect.objectContaining({ 
+            cwd: 'cwd',
+            onOutput: expect.any(Function),
+            onErrorOutput: expect.any(Function)
+          })
       );
     });
   });

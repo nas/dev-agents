@@ -2,6 +2,7 @@ import { select } from '@inquirer/prompts';
 import { runConductor } from './conductor';
 import { runCodex } from './codex';
 import { runFeature } from './aider';
+import { ProcessRunner } from '../ProcessRunner';
 
 type AgentChoice = {
   name: string;
@@ -13,6 +14,35 @@ const AGENTS: AgentChoice[] = [
   { name: 'Gemini Conductor', runner: runConductor },
   { name: 'Codex', runner: runCodex }
 ];
+
+async function showModelStats(passThrough: string[]): Promise<void> {
+  const modelArgs: string[] = [];
+  const modelIndex = passThrough.indexOf('--model');
+  if (modelIndex !== -1 && modelIndex + 1 < passThrough.length) {
+    modelArgs.push('--model', passThrough[modelIndex + 1]);
+  }
+
+  console.log('\n--- Model Stats ---');
+  
+  console.log('\n[Gemini Stats]');
+  try {
+    await ProcessRunner.run('gemini', ['stats', ...modelArgs], {
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+  } catch (error) {
+    // Ignore errors as these are just stats
+  }
+
+  console.log('\n[Codex Status]');
+  try {
+    await ProcessRunner.run('codex', ['status', ...modelArgs], {
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+  } catch (error) {
+    // Ignore errors as these are just status
+  }
+  console.log('\n-------------------\n');
+}
 
 function showHelp(): void {
   console.log(`
@@ -51,6 +81,8 @@ export async function runAgent(argv: string[]) {
     showHelp();
     return;
   }
+
+  await showModelStats(passThrough);
 
   const selection = await select({
     message: 'Which agent do you want to run?',
