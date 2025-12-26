@@ -1,18 +1,22 @@
 # Product Guidelines
 
 ## Tone and Voice
-- **System-oriented:** The CLI should maintain a minimalist, UNIX-style approach, focusing on efficiency and standard stream behavior.
+- **Operator-friendly:** Short prompts and outputs that are easy to scan.
+- **Lightweight status cues:** Emoji status markers are acceptable and already used in output.
 
 ## Error Handling
-- **Technical Accuracy:** Provide raw technical details and system error codes for precise debugging.
-- **Actionable Guidance:** Complement technical details with clear steps for resolution where possible.
-- **Fail-Fast:** The system should terminate immediately upon encountering a critical error, using appropriate non-zero exit codes.
+- **Fail fast:** Exit on missing environment requirements or invalid paths.
+- **Actionable messages:** Include the root error and a clear next step when possible.
 
 ## Interaction Model
-- **Hybrid Interactivity:** Prioritize command-line flags and arguments for automation and power users, while providing interactive prompts as a fallback for missing required information.
+- **Interactive by default:** Use prompts for repo selection, ticket selection, and plan approval.
+- **Flags for common skips:** Support `--no-pr`, `--skip-tests`, and `--dry-run` where applicable.
+- **Pass-through for agent launcher:** Require `--` when forwarding flags via `agent`.
 
 ## Visual Interface
-- **Enhanced Feedback:** Utilize ANSI colors, progress bars, and spinners to provide clear visual state indicators during long-running operations.
+- **Clean console output:** Prefer short blocks and consistent status lines.
+- **No heavy UI:** Avoid large ASCII art or verbose banners.
 
 ## Documentation
-- **Man-page Style Help:** Provide comprehensive and structured help documentation directly through the `--help` flag.
+- **Usage blocks:** Keep command usage aligned with `bin/ai-ops.ts` and agent-specific flags.
+- **Keep docs current:** Update help text and docs together when flags or workflows change.

@@ -84,9 +84,12 @@ If tests are available, run them and fix failures.`;
 
     const args = this.buildArgs(['exec', '-C', this.options.cwd, '--full-auto', '-']);
 
+    // Use piped stdio so input can be sent properly, but forward output to parent
     await ProcessRunner.run('codex', args, { 
-        input: prompt, 
-        stdio: 'inherit' 
+        input: prompt,
+        cwd: this.options.cwd,
+        onOutput: (data) => process.stdout.write(data),
+        onErrorOutput: (data) => process.stderr.write(data)
     });
   }
 }
