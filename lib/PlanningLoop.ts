@@ -34,6 +34,7 @@ export class PlanningLoop {
             planText = await this.agent.generatePlan(task, planText, feedback);
         }
       } catch (error: any) {
+        console.error(error);
         console.error(`
 ❌ Error generating plan: ${error.message}`);
         const action = await select({

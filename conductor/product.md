@@ -1,19 +1,22 @@
 # Product Guide
 
-## Initial Concept
-Automate the entire software development lifecycle from ticket to PR.
+## Purpose
+Provide a CLI that orchestrates ticket-to-PR workflows by combining planning, implementation, and optional PR creation across multiple AI agents.
 
 ## Target Users
-- Developers
+- Developers and maintainers who want a guided, repeatable workflow for Linear tickets.
 
 ## Core Value Proposition
-To automate the entire software development lifecycle from ticket to PR, streamlining the workflow for developers.
+Select a repo and ticket, review a generated plan, implement with a chosen agent, and optionally commit and open a PR from a single CLI.
 
 ## Key Features
-- **Linear Integration:** Seamlessly fetch and manage tickets from Linear.
-- **AI-Powered Planning:** Automated generation and verification of implementation plans using AI.
-- **Version Control Integration:** Automated Pull Request (PR) creation on platforms like GitHub or GitLab.
+- **Linear ticket selection:** Pulls assigned tickets or creates an ad-hoc task.
+- **Agent choice:** Aider builder, Gemini Conductor, or Codex.
+- **Plan review loop:** Interactive approve/revise/cancel flow.
+- **Branch automation:** Uses Linear branch names or `feature/<id>-<slug>`.
+- **Optional testing:** Aider can run `npm run test` and retry fixes.
+- **Optional PR creation:** Pushes and opens a PR via `gh`.
 
 ## Developer Experience
-- **CLI-First:** An interactive command-line interface designed for efficiency.
-- **Transparency:** Clear visibility into AI-generated plans to ensure trust and control.
+- **CLI-first:** Interactive prompts with minimal configuration.
+- **Transparent steps:** Clear prompts for plan approval, commits, and PRs.

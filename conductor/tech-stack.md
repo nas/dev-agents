@@ -3,11 +3,17 @@
 ## Core Technologies
 - **Programming Language:** TypeScript
 - **Runtime Environment:** Node.js
+- **CLI Runner:** `tsx` for TypeScript execution
 
-## Key Libraries and Frameworks
-- **CLI Framework:** `@inquirer/prompts` and `inquirer` for interactive command-line interfaces.
-- **API Integration:** `@linear/sdk` for interacting with the Linear API.
-- **Environment Management:** `dotenv` for managing environment variables.
+## Key Libraries
+- **CLI Prompts:** `@inquirer/prompts` (with `@inquirer/select`) and `inquirer`
+- **Linear Integration:** `@linear/sdk`
+- **Environment Management:** `dotenv`
+- **Testing:** `vitest` with `@vitest/coverage-v8` and `c8`
 
-## Development Tools
-- **Version Control:** Git
+## External CLI Dependencies
+- **Git:** Branching and commits
+- **GitHub CLI (`gh`):** PR creation
+- **Aider (`aider`):** Feature builder agent
+- **Gemini (`gemini`):** Conductor agent
+- **Codex (`codex`):** Codex agent
