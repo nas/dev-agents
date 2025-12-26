@@ -1,39 +1,45 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- Root-level TypeScript CLI; there is no `src/` directory.
-- `start-feature.ts` is the entrypoint that orchestrates the workflow.
-- `helpers.ts` contains git/test helpers and Linear ticket selection.
-- `aider.ts` wraps the `aider` CLI for planning and implementation.
-- `utils.ts` provides CLI help text, progress UI, and summary reporting.
-- `config.ts` centralizes repository and model configuration.
+- `bin/ai-ops.ts` is the main entrypoint that orchestrates the workflow.
+- `lib/` contains the core logic:
+  - `lib/agents/`: Multi-agent implementations (Aider, Gemini, Codex).
+  - `lib/commands/`: CLI command handlers.
+  - `lib/ConfigManager.ts`: Centralized configuration and model management.
+  - `lib/PlanningLoop.ts`: Orchestrates the plan-approve-implement loop.
+  - `lib/ProcessRunner.ts`: Helper for running external CLI tools.
+- `helpers.ts` and `utils.ts` in the root provide common utilities and Linear integration.
 
 ## Build, Test, and Development Commands
 - `npm install` installs dependencies.
-- `npx tsx start-feature.ts` runs the interactive feature builder.
-- `npx tsx start-feature.ts --help` shows CLI usage and flags.
-- `npm run start:feature` runs `node start-feature.ts` (use `tsx` if your Node runtime cannot execute TypeScript directly).
-- `npm test` is a placeholder and exits with an error unless you add tests.
+- `npm run aider` or `npx tsx bin/ai-ops.ts aider` runs the Aider feature builder.
+- `npm run conductor` or `npx tsx bin/ai-ops.ts conductor` runs the Gemini conductor.
+- `npm run codex` or `npx tsx bin/ai-ops.ts codex` runs the Codex builder.
+- `npm run agent` or `npx tsx bin/ai-ops.ts agent` allows interactive agent selection.
+- `npm test` runs unit tests using `vitest`.
 
 ## Coding Style & Naming Conventions
 - TypeScript with ES module imports, two-space indentation, single quotes, and semicolons.
-- Filenames are lowercase; use hyphens for multiword entrypoints (e.g., `start-feature.ts`).
+- Filenames are lowercase; use hyphens for multiword entrypoints (e.g., `ai-ops.ts`).
 - Use `camelCase` for functions/variables, `PascalCase` for classes, and `SCREAMING_SNAKE_CASE` for constants.
 
 ## Testing Guidelines
-- This repo does not ship unit tests. The CLI runs `npm run test` in the selected target repo.
-- If you add tests here, update `npm test` and document the framework in this file.
+- Unit tests for this repo are located in `tests/` and use `vitest`.
+- The CLI also runs `npm run test` in the selected target repo during implementation.
 
 ## Commit & Pull Request Guidelines
-- Prefer Conventional Commit-style messages (`feat: ...`, `fix: ...`); recent history mostly follows this.
-- Branches default to `feature/{TICKET}-{slug}` unless a Linear ticket provides `branchName`.
-- PRs should include a short summary, testing results (or why skipped), and a linked Linear issue.
+- Prefer Conventional Commit-style messages (`feat: ...`, `fix: ...`).
+- Branches follow the format `feature/{TICKET}-{slug}`.
+- PRs should include a short summary and link to the Linear issue.
 
 ## Required Branch & PR Workflow
-- Before making any change, create a new branch (never commit on `main`).
-- After work is complete, push the branch and open a PR.
-- Preferred flow: `git checkout -b feature/ABC-123-short-title` → commit → `git push -u origin feature/ABC-123-short-title` → `gh pr create --title "ABC-123: Short title" --body "Fixes https://linear.app/..."`
+1. Select a ticket or describe a task via the CLI.
+2. Approve the generated implementation plan.
+3. The CLI creates the branch and implements the changes.
+4. Verify changes (tests are run automatically for Aider).
+5. The CLI handles committing and PR creation (via `gh`).
 
 ## Security & Configuration Tips
-- Use a local `.env` file for `LINEAR_API_KEY` and AI provider keys (`GOOGLE_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `DEEPSEEK_API_KEY`, or `AIDER_API_KEY`).
-- Do not commit secrets. The CLI expects `aider` and `gh` to be installed and available on `PATH`.
+- Use a local `.env` file for API keys (`LINEAR_API_KEY`, `GOOGLE_API_KEY`, etc.).
+- Do not commit secrets.
+- Ensure `aider` and `gh` are installed and available on `PATH`.
