@@ -8,6 +8,7 @@ export interface TicketContext {
   targetPath: string;
   ticket: Issue;
   task: string;
+  ticketDescription: string;
 }
 
 export function buildBranchName(ticket: Issue): string {
@@ -75,6 +76,7 @@ export async function loadTicketContext(options: {
 
   let ticket: Issue | undefined;
   let taskString: string;
+  let ticketDescription = '';
 
   if (choice === 'linear') {
     ticket = await selectTicket();
@@ -84,6 +86,7 @@ export async function loadTicketContext(options: {
       process.exit(1);
     }
     taskString = buildTaskFromTicket(ticket);
+    ticketDescription = ticket.description ? ticket.description.trim() : '';
     console.log(`\n✅ Selected: ${ticket.identifier} - ${ticket.title}`);
   } else { // choice === 'task'
     const taskInput = await input({
@@ -97,6 +100,7 @@ export async function loadTicketContext(options: {
     });
 
     const [title, description] = taskInput.split(':', 2);
+    const trimmedDescription = description.trim();
 
     const adhocIdentifier = `ADHOC-${Date.now().toString().slice(-6)}`;
     const slug = title.trim().toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 50);
@@ -105,11 +109,12 @@ export async function loadTicketContext(options: {
       id: adhocIdentifier, // Placeholder for Linear ID
       identifier: adhocIdentifier,
       title: title.trim(),
-      description: description.trim(),
+      description: trimmedDescription,
       branchName: `feature/${adhocIdentifier}-${slug}`,
     } as Issue;
 
     taskString = buildTaskFromTicket(ticket);
+    ticketDescription = trimmedDescription;
     console.log(`\n✅ Ad-hoc task created: ${ticket.title}`);
   }
 
@@ -118,5 +123,6 @@ export async function loadTicketContext(options: {
     targetPath,
     ticket,
     task: taskString,
+    ticketDescription,
   };
 }

@@ -29,7 +29,7 @@ export async function runConductor(argv: string[]) {
     console.log('⚠️  --task is ignored when using Linear ticket selection.');
   }
 
-  const { targetPath, task, ticket } = await loadTicketContext({
+  const { targetPath, task, ticket, ticketDescription } = await loadTicketContext({
     requireAider: false,
     requireGh: !skipPr,
     requireLinear: true
@@ -65,7 +65,8 @@ export async function runConductor(argv: string[]) {
       const postResult = await runPostImplementation({
         targetPath,
         ticket,
-        skipPr
+        skipPr,
+        ticketDescription
       });
       summary.prCreated = postResult.prCreated;
     }

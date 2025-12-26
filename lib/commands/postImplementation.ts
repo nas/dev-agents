@@ -8,6 +8,19 @@ export interface PostImplementationResult {
   prCreated: boolean;
 }
 
+export function buildPrBody(ticket: Issue, ticketDescription?: string): string {
+  if (ticket.url) {
+    return `Fixes ${ticket.url}`;
+  }
+
+  const description = (ticketDescription ?? ticket.description ?? '').trim();
+  if (description) {
+    return description;
+  }
+
+  return ticket.title;
+}
+
 function getGitStatus(targetPath: string): string | null {
   try {
     return execSync('git status --porcelain', { cwd: targetPath, encoding: 'utf-8' }).trim();
@@ -33,6 +46,7 @@ export async function runPostImplementation(options: {
   targetPath: string;
   ticket: Issue;
   skipPr?: boolean;
+  ticketDescription?: string;
 }): Promise<PostImplementationResult> {
   const status = getGitStatus(options.targetPath);
   if (status === null) {
@@ -94,7 +108,7 @@ export async function runPostImplementation(options: {
       '--title',
       `${options.ticket.identifier}: ${options.ticket.title}`,
       '--body',
-      `Fixes ${options.ticket.url}`
+      buildPrBody(options.ticket, options.ticketDescription)
     ]);
     return { committed, prCreated: true };
   } catch (error: any) {

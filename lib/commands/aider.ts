@@ -24,7 +24,7 @@ export async function runFeature(argv: string[]) {
     editorModelOverride = argv[editorModelIndex + 1];
   }
 
-  const { configManager, targetPath, ticket, task } = await loadTicketContext({
+  const { configManager, targetPath, ticket, task, ticketDescription } = await loadTicketContext({
     requireAider: true,
     requireGh: !skipPR,
     requireLinear: true
@@ -122,7 +122,8 @@ export async function runFeature(argv: string[]) {
           const postResult = await runPostImplementation({
             targetPath,
             ticket,
-            skipPr: skipPR
+            skipPr: skipPR,
+            ticketDescription
           });
           summary.prCreated = postResult.prCreated;
       }
