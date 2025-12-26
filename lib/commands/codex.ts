@@ -18,7 +18,7 @@ export async function runCodex(argv: string[]) {
     profile = argv[profileIndex + 1];
   }
 
-  const { targetPath, task, ticket } = await loadTicketContext({
+  const { targetPath, task, ticket, ticketDescription } = await loadTicketContext({
     requireAider: false,
     requireGh: !skipPr,
     requireLinear: true
@@ -52,7 +52,8 @@ export async function runCodex(argv: string[]) {
       const postResult = await runPostImplementation({
         targetPath,
         ticket,
-        skipPr
+        skipPr,
+        ticketDescription
       });
       summary.prCreated = postResult.prCreated;
     }
