@@ -1,0 +1,8 @@
+{
+  "track_id": "run_conductor_20251226",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2025-12-26T12:00:00Z",
+  "updated_at": "2025-12-26T12:00:00Z",
+  "description": "add a new script, similar to start-codex that can be used to run gemini conductor cli from that script"
+}
