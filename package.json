@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start:feature": "NODE_OPTIONS='--no-deprecation' npx tsx start-feature.ts",
-    "start:codex": "npx tsx start-codex.ts"
+    "start:codex": "npx tsx start-codex.ts",
+    "start:gemini-conductor": "npx tsx start-gemini-conductor.ts"
   },
   "keywords": [],
   "author": "",
