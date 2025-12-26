@@ -7,6 +7,7 @@ export interface GeminiOptions {
     extensions?: string[];
     debug?: boolean;
     allowedTools?: string[];
+    cwd?: string;
 }
 
 export class GeminiAgent implements Agent {
@@ -70,7 +71,10 @@ Output only the plan.`;
     // Use ignore for stdin to avoid hanging if it expects input, but here we pass prompt as arg
     // But wait, start-gemini-conductor puts prompt as the last argument
     
-    return await ProcessRunner.runAndCapture('gemini', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    return await ProcessRunner.runAndCapture('gemini', args, {
+        cwd: this.options.cwd,
+        stdio: ['ignore', 'pipe', 'pipe']
+    });
   }
 
   async implement(task: string, plan: string): Promise<void> {
@@ -92,6 +96,6 @@ If tests are available, run them and fix failures.`;
     };
     const args = this.buildArgs(implementationOptions, [prompt]);
 
-    await ProcessRunner.run('gemini', args, { stdio: 'inherit' });
+    await ProcessRunner.run('gemini', args, { cwd: this.options.cwd, stdio: 'inherit' });
   }
 }

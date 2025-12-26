@@ -7,7 +7,8 @@
     "test": "vitest run --coverage",
     "feature": "NODE_OPTIONS='--no-deprecation' npx tsx bin/ai-ops.ts feature",
     "conductor": "npx tsx bin/ai-ops.ts conductor",
-    "codex": "npx tsx bin/ai-ops.ts codex"
+    "codex": "npx tsx bin/ai-ops.ts codex",
+    "agent": "npx tsx bin/ai-ops.ts agent"
   },
   "keywords": [],
   "author": "",

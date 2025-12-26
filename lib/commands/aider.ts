@@ -1,11 +1,11 @@
-import { select, input } from '@inquirer/prompts';
+import { select } from '@inquirer/prompts';
 import { AiderAgent } from '../agents/AiderAgent';
 import { PlanningLoop } from '../PlanningLoop';
-import { ConfigManager } from '../ConfigManager';
-import { runInRepo, runTests, selectRepo, selectTicket } from '../../helpers';
-import { ProgressIndicator, SummaryReport, generateSummary, getChangedFiles } from '../../utils';
-import { execSync } from 'child_process';
+import { runTests } from '../../helpers';
+import { SummaryReport, generateSummary, getChangedFiles } from '../../utils';
 import { ProcessRunner } from '../ProcessRunner';
+import { buildBranchName, ensureFeatureBranch, loadTicketContext } from './ticketFlow';
+import { runPostImplementation } from './postImplementation';
 
 export async function runFeature(argv: string[]) {
   const skipTests = argv.includes('--skip-tests');
@@ -24,21 +24,11 @@ export async function runFeature(argv: string[]) {
     editorModelOverride = argv[editorModelIndex + 1];
   }
 
-  const configManager = new ConfigManager();
-  const envErrors = configManager.validate();
-  if (envErrors.length > 0) {
-    console.error("\n❌ Environment validation failed:");
-    envErrors.forEach(error => console.error(`   - ${error}`));
-    process.exit(1);
-  }
-
-  const targetPath = await selectRepo(configManager);
-  const ticket = await selectTicket();
-  
-  if (!ticket) {
-      console.log("❌ No ticket selected. Exiting...");
-      process.exit(1);
-  }
+  const { configManager, targetPath, ticket, task } = await loadTicketContext({
+    requireAider: true,
+    requireGh: !skipPR,
+    requireLinear: true
+  });
 
   const summary: SummaryReport = {
     ticketId: ticket.identifier,
@@ -53,7 +43,7 @@ export async function runFeature(argv: string[]) {
     changedFiles: []
   };
 
-  const branchName = ticket.branchName || `feature/${ticket.identifier}-${ticket.title.toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 50)}`;
+  const branchName = buildBranchName(ticket);
 
   const agent = new AiderAgent(configManager, targetPath, modelOverride, editorModelOverride);
 
@@ -67,20 +57,7 @@ export async function runFeature(argv: string[]) {
             process.exit(0);
           }
 
-          console.log(`\n🌿 Creating/checking out branch: ${branchName}`);
-          try {
-            const branches = runInRepo(`git branch --list ${branchName}`, targetPath);
-            if (branches) {
-                runInRepo(`git checkout ${branchName}`, targetPath);
-                console.log("🔄 Switched to existing branch");
-            } else {
-                runInRepo(`git checkout -b ${branchName}`, targetPath);
-                console.log("✨ Created new branch");
-            }
-          } catch (err) {
-              console.error("❌ Git Error - make sure the path is a valid git repo.");
-              process.exit(1);
-          }
+          ensureFeatureBranch(targetPath, ticket);
       },
       afterImplementation: async () => {
           summary.changedFiles = getChangedFiles(targetPath);
@@ -142,29 +119,15 @@ export async function runFeature(argv: string[]) {
              }
           }
 
-          if (!skipPR) {
-              const confirm = await select({
-                  message: 'Ready to push and create PR?',
-                  choices: [
-                      { name: 'Yes, push and create PR', value: 'y' },
-                      { name: 'No, skip', value: 'n' }
-                  ]
-              });
-
-              if (confirm === 'y') {
-                  try {
-                      execSync(`git push -u origin ${branchName}`, { cwd: targetPath });
-                      execSync(`gh pr create --title "${ticket.identifier}: ${ticket.title}" --body "Fixes ${ticket.url}"`, { cwd: targetPath });
-                      summary.prCreated = true;
-                  } catch (error: any) {
-                      console.error("\n❌ Failed to create PR:", error.message);
-                  }
-              }
-          }
+          const postResult = await runPostImplementation({
+            targetPath,
+            ticket,
+            skipPr: skipPR
+          });
+          summary.prCreated = postResult.prCreated;
       }
   });
 
-  const task = `${ticket.title}\n${ticket.description}`;
   try {
     await loop.run(task);
   } catch (e) {

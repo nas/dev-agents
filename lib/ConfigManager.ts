@@ -36,25 +36,40 @@ export class ConfigManager {
     return this.config;
   }
 
-  validate(): string[] {
+  validate(options: {
+    requireAider?: boolean;
+    requireGh?: boolean;
+    requireLinear?: boolean;
+  } = {}): string[] {
     const errors: string[] = [];
     const warnings: string[] = [];
+    const requireAider = options.requireAider ?? true;
+    const requireGh = options.requireGh ?? true;
+    const requireLinear = options.requireLinear ?? false;
+
+    if (requireLinear && !this.config.linearApiKey) {
+      errors.push('LINEAR_API_KEY environment variable is not set');
+    }
 
     // Check for at least one AI API key if using AI models
     if (!this.config.googleApiKey && !this.config.anthropicApiKey && !this.config.openaiApiKey && !this.config.deepseekApiKey && !this.config.aiderApiKey) {
       warnings.push('No AI API key found. Set GOOGLE_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY, DEEPSEEK_API_KEY, or AIDER_API_KEY');
     }
 
-    try {
-      execSync('which aider', { stdio: 'pipe' });
-    } catch {
-      errors.push('aider command not found. Install with: pip install aider-chat');
+    if (requireAider) {
+      try {
+        execSync('which aider', { stdio: 'pipe' });
+      } catch {
+        errors.push('aider command not found. Install with: pip install aider-chat');
+      }
     }
 
-    try {
-      execSync('which gh', { stdio: 'pipe' });
-    } catch {
-      errors.push('GitHub CLI (gh) not found. Install from: https://cli.github.com');
+    if (requireGh) {
+      try {
+        execSync('which gh', { stdio: 'pipe' });
+      } catch {
+        errors.push('GitHub CLI (gh) not found. Install from: https://cli.github.com');
+      }
     }
 
     if (warnings.length > 0) {

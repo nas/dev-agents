@@ -1,38 +1,52 @@
-import { input } from '@inquirer/prompts';
 import { GeminiAgent, GeminiOptions } from '../agents/GeminiAgent';
 import { PlanningLoop } from '../PlanningLoop';
+import { ensureFeatureBranch, loadTicketContext } from './ticketFlow';
+import { runPostImplementation } from './postImplementation';
 
-function parseArgs(argv: string[]): { task?: string; options: GeminiOptions } {
-  // ... Simplified arg parsing ...
-  let task: string | undefined;
+function parseArgs(argv: string[]): { options: GeminiOptions; ignoredTask?: string; skipPr: boolean } {
+  let ignoredTask: string | undefined;
   const options: GeminiOptions = { extensions: ['conductor'] };
+  let skipPr = false;
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
-    if (arg === '--task') task = argv[++i];
+    if (arg === '--task') ignoredTask = argv[++i];
     else if (arg === '--model') options.model = argv[++i];
     else if (arg === '--extensions') options.extensions = argv[++i].split(',');
     else if (arg === '--approval-mode') options.approvalMode = argv[++i];
     else if (arg === '--allowed-tools') options.allowedTools = argv[++i].split(',');
     else if (arg === '--debug') options.debug = true;
-    else if (!arg.startsWith('-')) task = arg;
+    else if (arg === '--no-pr') skipPr = true;
   }
   
-  return { task, options };
+  return { options, ignoredTask, skipPr };
 }
 
 export async function runConductor(argv: string[]) {
-  const { task: initialTask, options } = parseArgs(argv);
-  
-  let task = initialTask;
-  if (!task) {
-    task = await input({
-      message: 'What task should Gemini Conductor solve?',
-      validate: (value: string) => (value.trim() ? true : 'Please describe the task.')
-    });
+  const { options, ignoredTask, skipPr } = parseArgs(argv);
+  if (ignoredTask) {
+    console.log('⚠️  --task is ignored when using Linear ticket selection.');
   }
 
+  const { targetPath, task, ticket } = await loadTicketContext({
+    requireAider: false,
+    requireGh: !skipPr,
+    requireLinear: true
+  });
+
+  options.cwd = targetPath;
   const agent = new GeminiAgent(options);
-  const loop = new PlanningLoop(agent);
+  const loop = new PlanningLoop(agent, {
+    onPlanApproved: async () => {
+      ensureFeatureBranch(targetPath, ticket);
+    },
+    afterImplementation: async () => {
+      await runPostImplementation({
+        targetPath,
+        ticket,
+        skipPr
+      });
+    }
+  });
   await loop.run(task);
 }
