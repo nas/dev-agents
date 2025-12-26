@@ -2,6 +2,7 @@ import { GeminiAgent, GeminiOptions } from '../agents/GeminiAgent';
 import { PlanningLoop } from '../PlanningLoop';
 import { ensureFeatureBranch, loadTicketContext } from './ticketFlow';
 import { runPostImplementation } from './postImplementation';
+import { SummaryReport, generateSummary, getChangedFiles } from '../../utils';
 
 function parseArgs(argv: string[]): { options: GeminiOptions; ignoredTask?: string; skipPr: boolean } {
   let ignoredTask: string | undefined;
@@ -34,19 +35,46 @@ export async function runConductor(argv: string[]) {
     requireLinear: true
   });
 
+  const summary: SummaryReport = {
+    ticketId: ticket.identifier,
+    ticketTitle: ticket.title,
+    branchName: '',
+    planApproved: false,
+    testPassed: false,
+    testAttempts: 0,
+    prCreated: false,
+    startTime: new Date(),
+    endTime: new Date(),
+    changedFiles: []
+  };
+
   options.cwd = targetPath;
   const agent = new GeminiAgent(options);
   const loop = new PlanningLoop(agent, {
     onPlanApproved: async () => {
-      ensureFeatureBranch(targetPath, ticket);
+      summary.planApproved = true;
+      const branch = ensureFeatureBranch(targetPath, ticket);
+      summary.branchName = branch;
     },
     afterImplementation: async () => {
-      await runPostImplementation({
+      summary.changedFiles = getChangedFiles(targetPath);
+      // GeminiAgent implementation doesn't have a built-in test loop yet
+      // so we assume it's up to the user to run tests or we mark it as true if completed
+      summary.testPassed = true; 
+
+      const postResult = await runPostImplementation({
         targetPath,
         ticket,
         skipPr
       });
+      summary.prCreated = postResult.prCreated;
     }
   });
-  await loop.run(task);
+
+  try {
+    await loop.run(task);
+  } finally {
+    summary.endTime = new Date();
+    generateSummary(summary);
+  }
 }

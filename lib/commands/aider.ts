@@ -54,7 +54,7 @@ export async function runFeature(argv: string[]) {
           
           if (dryRun) {
             console.log("\n🚧 DRY RUN COMPLETE (skipping implementation)");
-            process.exit(0);
+            return false;
           }
 
           ensureFeatureBranch(targetPath, ticket);

@@ -1,4 +1,5 @@
 import { input, select } from '@inquirer/prompts';
+import { ProgressIndicator } from '../utils';
 
 export interface Agent {
   name: string;
@@ -7,7 +8,7 @@ export interface Agent {
 }
 
 export interface PlanningLoopHooks {
-  onPlanApproved?: (plan: string) => Promise<void>;
+  onPlanApproved?: (plan: string) => Promise<void | boolean>;
   afterImplementation?: () => Promise<void>;
 }
 
@@ -19,13 +20,15 @@ export class PlanningLoop {
     let planText = '';
     let isFirstRun = true;
     let feedback = '';
+    const progress = new ProgressIndicator();
 
     console.log(`
 🤖 Starting planning session with ${this.agent.name}...
 `);
 
     while (true) {
-      console.log(isFirstRun ? 'Generating initial plan...' : 'Updating plan...');
+      const message = isFirstRun ? 'Generating initial plan...' : 'Updating plan...';
+      progress.start(message);
       
       try {
         if (isFirstRun) {
@@ -33,7 +36,9 @@ export class PlanningLoop {
         } else {
             planText = await this.agent.generatePlan(task, planText, feedback);
         }
+        progress.stop();
       } catch (error: any) {
+        progress.stop();
         console.error(error);
         console.error(`
 ❌ Error generating plan: ${error.message}`);
@@ -67,7 +72,8 @@ export class PlanningLoop {
 
       if (decision === 'approve') {
         if (this.hooks?.onPlanApproved) {
-            await this.hooks.onPlanApproved(planText);
+            const shouldContinue = await this.hooks.onPlanApproved(planText);
+            if (shouldContinue === false) return;
         }
         break;
       }

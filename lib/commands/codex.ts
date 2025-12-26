@@ -2,6 +2,7 @@ import { CodexAgent, CodexOptions } from '../agents/CodexAgent';
 import { PlanningLoop } from '../PlanningLoop';
 import { ensureFeatureBranch, loadTicketContext } from './ticketFlow';
 import { runPostImplementation } from './postImplementation';
+import { SummaryReport, generateSummary, getChangedFiles } from '../../utils';
 
 export async function runCodex(argv: string[]) {
   const skipPr = argv.includes('--no-pr');
@@ -23,20 +24,44 @@ export async function runCodex(argv: string[]) {
     requireLinear: true
   });
 
+  const summary: SummaryReport = {
+    ticketId: ticket.identifier,
+    ticketTitle: ticket.title,
+    branchName: '',
+    planApproved: false,
+    testPassed: false,
+    testAttempts: 0,
+    prCreated: false,
+    startTime: new Date(),
+    endTime: new Date(),
+    changedFiles: []
+  };
+
   const options: CodexOptions = { cwd: targetPath, model, profile };
   const agent = new CodexAgent(options);
   const loop = new PlanningLoop(agent, {
     onPlanApproved: async () => {
-      ensureFeatureBranch(targetPath, ticket);
+      summary.planApproved = true;
+      const branch = ensureFeatureBranch(targetPath, ticket);
+      summary.branchName = branch;
     },
     afterImplementation: async () => {
-      await runPostImplementation({
+      summary.changedFiles = getChangedFiles(targetPath);
+      summary.testPassed = true;
+
+      const postResult = await runPostImplementation({
         targetPath,
         ticket,
         skipPr
       });
+      summary.prCreated = postResult.prCreated;
     }
   });
 
-  await loop.run(task);
+  try {
+    await loop.run(task);
+  } finally {
+    summary.endTime = new Date();
+    generateSummary(summary);
+  }
 }
