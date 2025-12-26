@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getChangedFiles, generateSummary, SummaryReport } from '../utils';
+import { getChangedFiles, generateSummary, SummaryReport, showHelp } from '../utils';
 import { execSync } from 'child_process';
 
 vi.mock('child_process', () => ({
@@ -45,6 +45,15 @@ describe('utils', () => {
       };
       generateSummary(report);
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('FEATURE IMPLEMENTATION SUMMARY'));
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('showHelp', () => {
+    it('should log CLI usage', () => {
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      showHelp();
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('AI OPS CLI'));
       consoleSpy.mockRestore();
     });
   });

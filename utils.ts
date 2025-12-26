@@ -6,19 +6,43 @@ import path from 'path';
 // Display help information
 export function showHelp(): void {
   console.log(`
-🤖 AI FEATURE BUILDER - Usage
+AI OPS CLI
+
+Usage:
+  npx tsx bin/ai-ops.ts <command> [options]
+  npm run <command> -- [options]
 
 Commands:
-  npx tsx start-feature.ts          Start the feature builder
-  npx tsx start-feature.ts --help   Show this help message
-  npx tsx start-feature.ts --dry-run Preview without making changes
+  aider       Start the Aider feature builder
+  conductor   Start the Gemini conductor
+  codex       Start the Codex builder
+  agent       Choose an agent to run
 
-Options:
-  --help, -h      Show help
-  --dry-run       Preview what would happen without making changes
-  --skip-tests    Skip running tests after implementation
-  --no-pr         Skip creating a PR at the end
-  --model <name>  Override the AI model used by aider (default: gemini-2.5-pro)
+Global Options:
+  --help, -h  Show this help message
+
+Aider Options:
+  --dry-run            Preview without making changes
+  --skip-tests         Skip running tests after implementation
+  --no-pr              Skip creating a PR at the end
+  --model <name>       Override the AI model used by aider
+  --editor-model <name> Override the editor model used by aider
+
+Conductor Options:
+  --model <name>         Override the Gemini model
+  --extensions <list>    Comma-separated extension list
+  --approval-mode <mode> Approval mode for tool usage
+  --allowed-tools <list> Comma-separated tool allowlist
+  --debug                Enable debug logging
+  --no-pr                Skip creating a PR at the end
+
+Codex Options:
+  --model <name>   Override the Codex model
+  --profile <name> Use a Codex profile
+  --no-pr          Skip creating a PR at the end
+
+Agent Options:
+  --help, -h  Show agent launcher help
 
 Environment Variables:
   LINEAR_API_KEY      Your Linear API key
@@ -29,13 +53,12 @@ Environment Variables:
   AIDER_API_KEY       Generic API key for other models (used as-is)
   AIDER_MODEL         Default AI model to use with aider (overrides default)
 
-Workflow:
-  1. Select a repository
-  2. Choose a Linear ticket
-  3. Review AI-generated implementation plan
-  4. Implement feature with Aider
-  5. Run tests and fix issues
-  6. Create PR (optional)
+Notes:
+  - Use "--" to pass flags through the agent launcher.
+  - Example: npx tsx bin/ai-ops.ts agent -- --model gpt-5.2
+  - Example: npm run agent -- --model gemini-2.5-flash
+  - Example: npm run conductor -- --model gemini-2.5-flash
+  - Example: npm run codex -- --model gpt-5.2-codex
 
 For more information, see the README.
 `);

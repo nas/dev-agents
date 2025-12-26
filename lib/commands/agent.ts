@@ -2,6 +2,7 @@ import { select } from '@inquirer/prompts';
 import { runConductor } from './conductor';
 import { runCodex } from './codex';
 import { runFeature } from './aider';
+import { showHelp } from '../../utils';
 
 type AgentChoice = {
   name: string;
@@ -33,23 +34,6 @@ const AGENTS: AgentChoice[] = [
     ]
   }
 ];
-
-function showHelp(): void {
-  console.log(`
-AGENT LAUNCHER
-
-Usage:
-  npx tsx bin/ai-ops.ts agent
-  npx tsx bin/ai-ops.ts agent -- --model gpt-4.1
-
-Options:
-  --help, -h  Show this help message
-
-Notes:
-  - Use "--" to pass flags to the selected agent.
-  - Example: npx tsx bin/ai-ops.ts agent -- --model gpt-4.1
-`);
-}
 
 function splitArgs(argv: string[]): { launcherArgs: string[]; passThrough: string[] } {
   const normalizedArgs = argv[0] === 'agent' ? argv.slice(1) : argv;
