@@ -1,6 +1,6 @@
 import { confirm, select } from '@inquirer/prompts';
 import { SummaryReport, generateSummary, getChangedFiles } from '../../utils';
-import { buildBranchName, ensureFeatureBranch, loadTicketContext } from './ticketFlow';
+import { buildBranchName, ensureFeatureBranch, ensureWorktree, loadTicketContext } from './ticketFlow';
 import { runPostImplementation } from './postImplementation';
 import { runTests } from '../../helpers';
 import { runAmpAutomated } from './ampAutomated';
@@ -9,7 +9,7 @@ export async function runAmp(argv: string[]) {
   const skipTests = argv.includes('--skip-tests');
   const skipPR = argv.includes('--no-pr');
 
-  const { targetPath, ticket, task, ticketDescription } = await loadTicketContext({
+  let { targetPath, ticket, task, ticketDescription } = await loadTicketContext({
     requireAider: false,
     requireGh: !skipPR,
     requireLinear: true
@@ -29,6 +29,7 @@ export async function runAmp(argv: string[]) {
   };
 
   const branchName = buildBranchName(ticket);
+  targetPath = ensureWorktree(targetPath, branchName);
 
   try {
     console.log('\n' + '='.repeat(60));
