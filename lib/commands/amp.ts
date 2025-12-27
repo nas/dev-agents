@@ -1,8 +1,9 @@
-import { confirm } from '@inquirer/prompts';
+import { confirm, select } from '@inquirer/prompts';
 import { SummaryReport, generateSummary, getChangedFiles } from '../../utils';
 import { buildBranchName, ensureFeatureBranch, loadTicketContext } from './ticketFlow';
 import { runPostImplementation } from './postImplementation';
 import { runTests } from '../../helpers';
+import { runAmpAutomated } from './ampAutomated';
 
 export async function runAmp(argv: string[]) {
   const skipTests = argv.includes('--skip-tests');
@@ -44,22 +45,51 @@ export async function runAmp(argv: string[]) {
     ensureFeatureBranch(targetPath, ticket);
     console.log(`✅ Feature branch created: ${branchName}`);
 
-    // Direct user to Amp thread
+    // Choose implementation mode
     console.log('\n' + '-'.repeat(60));
-    console.log('📝 NEXT STEP: Go to your Amp thread and paste this task:');
-    console.log('-'.repeat(60));
-    console.log(`\nImplement this task:\n\n${task}`);
-    console.log('\n' + '-'.repeat(60));
-
-    // Wait for implementation completion
-    const implemented = await confirm({
-      message: 'Have you completed the implementation in the Amp thread?',
-      default: false
+    const mode = await select({
+      message: 'Choose implementation mode:',
+      choices: [
+        { name: 'Manual - Go to Amp thread and implement', value: 'manual' },
+        { name: 'Automated - Use Amp SDK to implement directly', value: 'automated' }
+      ]
     });
+    console.log('-'.repeat(60));
 
-    if (!implemented) {
-      console.log('Exiting without changes.');
-      return;
+    let implemented = false;
+
+    if (mode === 'manual') {
+      // Manual implementation flow
+      console.log('📝 NEXT STEP: Go to your Amp thread and paste this task:');
+      console.log('-'.repeat(60));
+      console.log(`\nImplement this task:\n\n${task}`);
+      console.log('\n' + '-'.repeat(60));
+
+      // Wait for implementation completion
+      implemented = await confirm({
+        message: 'Have you completed the implementation in the Amp thread?',
+        default: false
+      });
+
+      if (!implemented) {
+        console.log('Exiting without changes.');
+        return;
+      }
+    } else {
+      // Automated implementation flow
+      console.log('\n🤖 Sending task to Amp SDK for automated implementation...\n');
+      try {
+        await runAmpAutomated({
+          task,
+          targetPath,
+          ticket,
+          branchName
+        });
+        implemented = true;
+      } catch (error) {
+        console.error('❌ Automated implementation failed:', error);
+        return;
+      }
     }
 
     // Run tests if not skipped
