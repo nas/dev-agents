@@ -12,6 +12,8 @@
 
 ## Build, Test, and Development Commands
 - `npm install` installs dependencies.
+- `npm link` creates a global symlink for the `a1` command (run once to enable global access).
+- `a1 aider`, `a1 conductor`, `a1 codex`, `a1 amp`, `a1 agent` run agents globally from any directory (requires `npm link`).
 - `npm run aider` or `npx tsx bin/ai-ops.ts aider` runs the Aider feature builder.
 - `npm run conductor` or `npx tsx bin/ai-ops.ts conductor` runs the Gemini conductor.
 - `npm run codex` or `npx tsx bin/ai-ops.ts codex` runs the Codex builder.
