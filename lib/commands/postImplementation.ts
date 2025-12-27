@@ -34,8 +34,8 @@ function runGitCommand(targetPath: string, args: string[]): void {
   execFileSync('git', args, { cwd: targetPath, stdio: 'inherit' });
 }
 
-function runGhCommand(args: string[]): void {
-  execFileSync('gh', args, { stdio: 'inherit' });
+function runGhCommand(targetPath: string, args: string[]): void {
+  execFileSync('gh', args, { cwd: targetPath, stdio: 'inherit' });
 }
 
 function buildDefaultCommitMessage(ticket: Issue): string {
@@ -102,7 +102,7 @@ export async function runPostImplementation(options: {
 
   try {
     runGitCommand(options.targetPath, ['push', '-u', 'origin', branchName]);
-    runGhCommand([
+    runGhCommand(options.targetPath, [
       'pr',
       'create',
       '--title',
