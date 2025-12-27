@@ -1,6 +1,6 @@
 import { GeminiAgent, GeminiOptions } from '../agents/GeminiAgent';
 import { PlanningLoop } from '../PlanningLoop';
-import { ensureFeatureBranch, loadTicketContext } from './ticketFlow';
+import { buildBranchName, ensureFeatureBranch, ensureWorktree, loadTicketContext } from './ticketFlow';
 import { runPostImplementation } from './postImplementation';
 import { SummaryReport, generateSummary, getChangedFiles } from '../../utils';
 
@@ -29,11 +29,14 @@ export async function runConductor(argv: string[]) {
     console.log('⚠️  --task is ignored when using Linear ticket selection.');
   }
 
-  const { targetPath, task, ticket, ticketDescription } = await loadTicketContext({
+  let { targetPath, task, ticket, ticketDescription } = await loadTicketContext({
     requireAider: false,
     requireGh: !skipPr,
     requireLinear: true
   });
+
+  const branchName = buildBranchName(ticket);
+  targetPath = ensureWorktree(targetPath, branchName);
 
   const summary: SummaryReport = {
     ticketId: ticket.identifier,

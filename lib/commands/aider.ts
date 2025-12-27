@@ -4,7 +4,7 @@ import { PlanningLoop } from '../PlanningLoop';
 import { runTests } from '../../helpers';
 import { SummaryReport, generateSummary, getChangedFiles } from '../../utils';
 import { ProcessRunner } from '../ProcessRunner';
-import { buildBranchName, ensureFeatureBranch, loadTicketContext } from './ticketFlow';
+import { buildBranchName, ensureFeatureBranch, ensureWorktree, loadTicketContext } from './ticketFlow';
 import { runPostImplementation } from './postImplementation';
 
 export async function runFeature(argv: string[]) {
@@ -24,7 +24,7 @@ export async function runFeature(argv: string[]) {
     editorModelOverride = argv[editorModelIndex + 1];
   }
 
-  const { configManager, targetPath, ticket, task, ticketDescription } = await loadTicketContext({
+  let { configManager, targetPath, ticket, task, ticketDescription } = await loadTicketContext({
     requireAider: true,
     requireGh: !skipPR,
     requireLinear: true
@@ -44,6 +44,7 @@ export async function runFeature(argv: string[]) {
   };
 
   const branchName = buildBranchName(ticket);
+  targetPath = ensureWorktree(targetPath, branchName);
 
   const agent = new AiderAgent(configManager, targetPath, modelOverride, editorModelOverride);
 

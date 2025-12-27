@@ -1,5 +1,8 @@
 import { select, input } from '@inquirer/prompts';
 import { Issue } from '@linear/sdk';
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
 import { runInRepo, confirmWorkingDirectory, selectTicket } from '../../helpers';
 import { ConfigManager } from '../ConfigManager';
 
@@ -22,6 +25,34 @@ export function buildBranchName(ticket: Issue): string {
 export function buildTaskFromTicket(ticket: Issue): string {
   const description = ticket.description ? ticket.description.trim() : '';
   return description ? `${ticket.title}\n${description}` : ticket.title;
+}
+
+export function ensureWorktree(targetPath: string, branchName: string): string {
+  const repoName = path.basename(targetPath);
+  const worktreePath = path.resolve(targetPath, '..', 'worktrees', repoName, branchName);
+  const worktreeRoot = path.dirname(worktreePath);
+
+  if (!fs.existsSync(worktreeRoot)) {
+    fs.mkdirSync(worktreeRoot, { recursive: true });
+  }
+
+  if (fs.existsSync(worktreePath)) {
+    console.log(`\n🪵 Using existing worktree: ${worktreePath}`);
+  } else {
+    console.log(`\n🪵 Creating worktree: ${worktreePath}`);
+    try {
+      execSync(`git worktree add --detach ${worktreePath}`, {
+        cwd: targetPath,
+        stdio: 'inherit'
+      });
+    } catch {
+      console.error('❌ Git Error - failed to create worktree.');
+      process.exit(1);
+    }
+  }
+
+  console.log(`🧹 Cleanup after merge: git worktree remove ${worktreePath}`);
+  return worktreePath;
 }
 
 export function ensureFeatureBranch(targetPath: string, ticket: Issue): string {
