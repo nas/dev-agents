@@ -2,7 +2,11 @@
   "name": "ai-ops",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "index.js",
+  "bin": {
+    "a1": "./bin/ai-ops.ts"
+  },
   "scripts": {
     "test": "vitest run --coverage",
     "aider": "NODE_OPTIONS='--no-deprecation' npx tsx bin/ai-ops.ts aider",

@@ -1,6 +1,6 @@
 import { select, input } from '@inquirer/prompts';
 import { Issue } from '@linear/sdk';
-import { runInRepo, selectRepo, selectTicket } from '../../helpers';
+import { runInRepo, confirmWorkingDirectory, selectTicket } from '../../helpers';
 import { ConfigManager } from '../ConfigManager';
 
 export interface TicketContext {
@@ -64,7 +64,7 @@ export async function loadTicketContext(options: {
     process.exit(1);
   }
 
-  const targetPath = await selectRepo(configManager);
+  const targetPath = await confirmWorkingDirectory();
 
   const choice = await select({
     message: 'What would you like to do?',

@@ -21,3 +21,9 @@ Select a repo and ticket, review a generated plan, implement with a chosen agent
 ## Developer Experience
 - **CLI-first:** Interactive prompts with minimal configuration.
 - **Transparent steps:** Clear prompts for plan approval, commits, and PRs.
+- **Global access:** Run `npm link` once to access `a1` from any directory.
+
+## Getting Started
+1. Run `npm install` to install dependencies.
+2. Run `npm link` to create a global `a1` command (one-time setup).
+3. Run `a1 conductor` from any directory to start the workflow.
