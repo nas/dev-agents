@@ -13,12 +13,14 @@
 
 1. **Start a command:**
    - `npm run conductor` or `npx tsx bin/ai-ops.ts conductor` (Gemini Conductor)
-   - `npm run feature`, `npx tsx bin/ai-ops.ts feature`, or `npx tsx bin/ai-ops.ts aider` (Aider builder)
+   - `npm run aider` or `npx tsx bin/ai-ops.ts aider` (Aider builder)
    - `npm run codex` or `npx tsx bin/ai-ops.ts codex` (Codex)
+   - `npm run amp` or `npx tsx bin/ai-ops.ts amp` (Amp Agent)
    - `npm run agent` or `npx tsx bin/ai-ops.ts agent` (pick an agent interactively)
 2. **Validate environment:**
    - `LINEAR_API_KEY` is required for ticket selection.
    - `gh` is required unless `--no-pr` is set.
+   - `AMP_API_KEY` is required for automated Amp implementation.
    - `aider` is only required for the Aider flow.
    - Missing AI API keys generate warnings but do not block startup.
 3. **Select the target repo:**
@@ -35,23 +37,20 @@
    - The branch is created or checked out after plan approval.
 7. **Implementation:**
    - The agent executes the approved plan in the selected repo.
-   - Conductor uses `gemini`, Codex uses `codex`, and Aider uses `aider`.
-8. **Tests (Aider only):**
+   - Conductor uses `gemini`, Codex uses `codex`, Aider uses `aider`, and Amp uses the Amp SDK.
+8. **Tests (Aider and Amp):**
    - Runs `npm run test` in the target repo unless `--skip-tests` is set.
    - If tests fail, Aider can attempt fixes with user confirmation after repeated failures.
-9. **Post-implementation:**
-   - The CLI can commit changes with a default message `feat(<ID>): <title>`.
-   - If enabled, it pushes the branch and opens a PR via `gh pr create`.
+   - For Amp, users can fix failures in the Amp thread and confirm in the CLI.
 
 ## Conductor Flags
 
-- `--model <name>`: Override the Gemini model.
+- `--model <name>`: Override the Gemini model. Supported: `gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-2.5-pro`, `gemini-3-flash-preview`, `gemini-3-pro-preview`.
 - `--extensions <comma-list>`: Override extensions (default: `conductor`).
 - `--approval-mode <mode>`: Pass through approval mode to the Gemini CLI.
 - `--allowed-tools <comma-list>`: Restrict Gemini tool usage.
 - `--debug`: Enable Gemini debug output.
 - `--no-pr`: Skip push/PR creation.
-- `--task <value>`: Accepted but ignored; tasks always come from ticket selection.
 
 ## Aider Flags
 
@@ -63,6 +62,12 @@
 
 ## Codex Flags
 
-- `--model <name>`: Override the Codex model.
+- `--model <name>`: Override the Codex model. Supported: `gpt-5.2-codex`, `gpt-5.1-codex-max`, `gpt-5.1-codex-mini`, `gpt-5.2`.
 - `--profile <name>`: Use a Codex profile.
 - `--no-pr`: Skip push/PR creation.
+
+## Amp Flags
+
+- `--skip-tests`: Skip the test verification phase.
+- `--no-pr`: Skip push/PR creation.
+
