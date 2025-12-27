@@ -8,6 +8,7 @@
 ## Key Libraries
 - **CLI Prompts:** `inquirer` and `@inquirer/select`
 - **Linear Integration:** `@linear/sdk`
+- **Amp Integration:** `@sourcegraph/amp-sdk`
 - **Environment Management:** `dotenv`
 - **Testing:** `vitest` with `@vitest/coverage-v8`
 
@@ -20,3 +21,4 @@
 - **AiderAgent:** Wraps the `aider` CLI for feature implementation and planning.
 - **GeminiAgent:** Conductor agent for high-level planning and orchestration.
 - **CodexAgent:** Specialized agent for codebase analysis and understanding.
+- **AmpAgent:** Uses Amp SDK for automated implementation and code generation.

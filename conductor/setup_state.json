@@ -2,13 +2,15 @@
   "agents": {
     "AiderAgent": "implemented",
     "GeminiAgent": "implemented",
-    "CodexAgent": "implemented"
+    "CodexAgent": "implemented",
+    "AmpAgent": "implemented"
   },
   "commands": {
     "aider": "implemented",
     "conductor": "implemented",
     "codex": "implemented",
+    "amp": "implemented",
     "agent": "implemented"
   },
-  "last_updated": "2025-12-26"
+  "last_updated": "2025-12-27"
 }

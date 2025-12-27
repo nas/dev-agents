@@ -11,8 +11,9 @@ Select a repo and ticket, review a generated plan, implement with a chosen agent
 
 ## Key Features
 - **Linear ticket selection:** Pulls assigned tickets or creates an ad-hoc task.
-- **Agent choice:** Aider builder, Gemini Conductor, or Codex.
+- **Agent choice:** Aider builder, Gemini Conductor, Codex, or Amp Agent.
 - **Plan review loop:** Interactive approve/revise/cancel flow.
+- **Automated Implementation:** Hybrid manual/automated implementation via Amp SDK.
 - **Branch automation:** Uses Linear branch names or `feature/<id>-<slug>`.
 - **Optional testing:** Aider can run `npm run test` and retry fixes.
 - **Optional PR creation:** Pushes and opens a PR via `gh`.
