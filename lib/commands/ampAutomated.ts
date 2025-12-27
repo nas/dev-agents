@@ -1,7 +1,9 @@
 import 'dotenv/config';
 import { Issue } from '@linear/sdk';
+import { select, input } from '@inquirer/prompts';
 import fs from 'fs';
 import path from 'path';
+import { ProgressIndicator } from '../../utils';
 
 interface AmpAutomatedOptions {
   task: string;
@@ -12,9 +14,11 @@ interface AmpAutomatedOptions {
 
 /**
  * Uses Amp SDK to automatically implement the task and apply changes to the repository
+ * Follows the planning loop pattern: plan -> approve -> implement
  */
 export async function runAmpAutomated(options: AmpAutomatedOptions): Promise<void> {
   const { task, targetPath, ticket, branchName } = options;
+  const progress = new ProgressIndicator();
 
   try {
     // Check if AMP_API_KEY is available
@@ -23,69 +27,150 @@ export async function runAmpAutomated(options: AmpAutomatedOptions): Promise<voi
       throw new Error('AMP_API_KEY environment variable is not set. Cannot use automated mode.');
     }
 
-    console.log(`📤 Sending implementation request to Amp...`);
-    console.log(`   Ticket: ${ticket.identifier} - ${ticket.title}`);
+    console.log(`\n🤖 Starting Amp planning session...`);
 
-    // Call Amp SDK to handle the implementation
-    // This would integrate with Amp's SDK to:
-    // 1. Send the task to the Amp thread
-    // 2. Wait for response with implemented code
-    // 3. Apply changes to targetPath
-    // 4. Commit changes to the branchName
+    let plan = '';
+    let isFirstRun = true;
+    let feedback = '';
 
-    const ampResponse = await sendTaskToAmpSdk({
-      apiKey: ampApiKey,
-      task,
-      ticketId: ticket.identifier,
-      ticketTitle: ticket.title,
-      targetPath,
-      branchName
-    });
+    // Planning loop - let user approve or request changes
+    while (true) {
+      const message = isFirstRun ? 'Generating implementation plan...' : 'Updating plan...';
+      progress.start(message);
 
-    console.log(`✅ Received implementation from Amp SDK`);
-    console.log(`   Files modified: ${ampResponse.filesModified.length}`);
-    
-    // Apply the changes returned from Amp SDK
-    await applyChanges(targetPath, ampResponse.changes);
+      try {
+        plan = await generatePlan(ampApiKey, task, targetPath, isFirstRun ? '' : plan, feedback);
+        progress.stop();
+      } catch (error: any) {
+        progress.stop();
+        console.error(`\n❌ Error generating plan: ${error.message}`);
+        const action = await select({
+          message: 'How would you like to proceed?',
+          choices: [
+            { name: 'Retry', value: 'retry' },
+            { name: 'Cancel', value: 'cancel' }
+          ]
+        });
+        if (action === 'cancel') return;
+        continue;
+      }
 
-    console.log(`✅ Changes applied to repository on branch: ${branchName}`);
+      isFirstRun = false;
+
+      console.log('\n' + '='.repeat(60));
+      console.log('PROPOSED PLAN');
+      console.log('='.repeat(60));
+      console.log(plan);
+      console.log('='.repeat(60));
+
+      const decision = await select({
+        message: 'How would you like to proceed?',
+        choices: [
+          { name: '✅ Approve and implement', value: 'approve' },
+          { name: '✏️  Request changes', value: 'modify' },
+          { name: '❌ Cancel', value: 'cancel' }
+        ]
+      });
+
+      if (decision === 'approve') {
+        break;
+      }
+
+      if (decision === 'cancel') {
+        console.log('Exiting without changes.');
+        return;
+      }
+
+      feedback = await input({
+        message: 'Describe the changes you want in the plan:',
+        validate: (value: string) => (value.trim() ? true : 'Please enter your requested changes.')
+      });
+    }
+
+    // Plan is approved, now implement
+    console.log('\n🚀 Starting implementation...');
+    progress.start('Implementing changes...');
+
+    try {
+      const ampResponse = await implementPlan(ampApiKey, task, targetPath, plan);
+      progress.stop();
+
+      console.log(`✅ Received implementation from Amp SDK`);
+      console.log(`   Files modified: ${ampResponse.filesModified.length}`);
+
+      // Apply the changes returned from Amp SDK
+      await applyChanges(targetPath, ampResponse.changes);
+
+      console.log(`✅ Changes applied to repository on branch: ${branchName}`);
+    } catch (error: any) {
+      progress.stop();
+      throw new Error(`Implementation failed: ${error.message}`);
+    }
   } catch (error) {
     throw new Error(`Failed to run automated implementation: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
-interface AmpSDKRequest {
-  apiKey: string;
-  task: string;
-  ticketId: string;
-  ticketTitle: string;
-  targetPath: string;
-  branchName: string;
-}
+/**
+ * Generate a plan for implementing the task
+ */
+async function generatePlan(
+  apiKey: string,
+  task: string,
+  targetPath: string,
+  previousPlan: string,
+  feedback: string
+): Promise<string> {
+  const prompt = previousPlan
+    ? `Previous plan:\n${previousPlan}\n\nUser feedback:\n${feedback}\n\nPlease update the plan based on the feedback above.`
+    : `Create a detailed implementation plan for this task:\n\n${task}\n\nWorking directory: ${targetPath}\n\nProvide a clear, step-by-step plan without implementing it yet.`;
 
-interface AmpSDKResponse {
-  filesModified: string[];
-  changes: FileChange[];
-}
+  let planText = '';
 
-interface FileChange {
-  path: string;
-  content: string;
-  action: 'create' | 'modify' | 'delete';
+  const execute = await getExecute();
+  for await (const message of execute({
+    prompt,
+    options: {
+      continue: true,
+      cwd: targetPath,
+      dangerouslyAllowAll: true,
+      logLevel: 'error',
+      env: {
+        AMP_API_KEY: apiKey
+      }
+    }
+  })) {
+    if (message.type === 'result') {
+      if (message.is_error) {
+        throw new Error(`Amp plan generation failed: ${message.error}`);
+      }
+      planText = message.result || '';
+    }
+  }
+
+  if (!planText) {
+    throw new Error('No plan generated');
+  }
+
+  return planText;
 }
 
 /**
- * Sends the task to Amp SDK and waits for the implementation
+ * Implement the approved plan
  */
-async function sendTaskToAmpSdk(request: AmpSDKRequest): Promise<AmpSDKResponse> {
-  const { apiKey, task, targetPath, branchName } = request;
+async function implementPlan(
+  apiKey: string,
+  task: string,
+  targetPath: string,
+  plan: string
+): Promise<AmpSDKResponse> {
+  const prompt = `Based on this approved plan:
 
-  const prompt = `Implement this task in the codebase:
+${plan}
+
+Now implement the task. Make all necessary code changes to complete the implementation.
 
 ${task}
-
-Working directory: ${targetPath}
-Branch name: ${branchName}
 
 When you're done, output a JSON block with this exact format at the end of your response:
 \`\`\`json
@@ -103,59 +188,66 @@ When you're done, output a JSON block with this exact format at the end of your 
 
   let finalResult = '';
 
-  try {
-    console.log('⏳ Waiting for Amp to complete implementation...');
-
-    // Dynamically import the Amp SDK to work around ESM export issues
-    const { execute } = await import('@sourcegraph/amp-sdk');
-
-    // Execute the task with API key - start a new thread (don't use continue)
-    // This ensures we use API mode instead of free mode
-    for await (const message of execute({
-      prompt,
-      options: {
-        cwd: targetPath,
-        dangerouslyAllowAll: true,
-        logLevel: 'error',
-        // Pass API key via env 
-        env: {
-          AMP_API_KEY: apiKey
-        }
-      }
-    })) {
-
-      if (message.type === 'assistant') {
-        // Show progress
-        const content = message.message?.content?.[0];
-        if (content?.type === 'tool_use') {
-          console.log(`   Using ${content.name}...`);
-        }
-      } else if (message.type === 'result') {
-        if (message.is_error) {
-          throw new Error(`Amp implementation failed: ${message.error}`);
-        }
-        finalResult = message.result || '';
+  const execute = await getExecute();
+  for await (const message of execute({
+    prompt,
+    options: {
+      continue: true,
+      cwd: targetPath,
+      dangerouslyAllowAll: true,
+      logLevel: 'error',
+      env: {
+        AMP_API_KEY: apiKey
       }
     }
-
-    // Parse the JSON response from the final result
-    const jsonMatch = finalResult.match(/```json\n([\s\S]*?)\n```/);
-    if (!jsonMatch) {
-      throw new Error('Could not extract implementation results from Amp response');
+  })) {
+    if (message.type === 'assistant') {
+      const content = message.message?.content?.[0];
+      if (content?.type === 'tool_use') {
+        console.log(`   Using ${content.name}...`);
+      }
+    } else if (message.type === 'result') {
+      if (message.is_error) {
+        throw new Error(`Amp implementation failed: ${message.error}`);
+      }
+      finalResult = message.result || '';
     }
-
-    try {
-      const parsed = JSON.parse(jsonMatch[1]);
-      return {
-        filesModified: parsed.filesModified || [],
-        changes: parsed.changes || []
-      };
-    } catch (parseError) {
-      throw new Error(`Failed to parse Amp response: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
-    }
-  } catch (error) {
-    throw error;
   }
+
+  // Parse the JSON response from the final result
+  const jsonMatch = finalResult.match(/```json\n([\s\S]*?)\n```/);
+  if (!jsonMatch) {
+    throw new Error('Could not extract implementation results from Amp response');
+  }
+
+  try {
+    const parsed = JSON.parse(jsonMatch[1]);
+    return {
+      filesModified: parsed.filesModified || [],
+      changes: parsed.changes || []
+    };
+  } catch (parseError) {
+    throw new Error(`Failed to parse Amp response: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+  }
+}
+
+/**
+ * Get the execute function from Amp SDK (with dynamic import to avoid ESM issues)
+ */
+async function getExecute() {
+  const { execute } = await import('@sourcegraph/amp-sdk');
+  return execute;
+}
+
+interface AmpSDKResponse {
+  filesModified: string[];
+  changes: FileChange[];
+}
+
+interface FileChange {
+  path: string;
+  content: string;
+  action: 'create' | 'modify' | 'delete';
 }
 
 /**
