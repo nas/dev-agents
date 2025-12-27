@@ -30,50 +30,31 @@ export function runTests(cwd: string): { passed: boolean; output: string } {
   }
 }
 
-export async function selectRepo(configManager: ConfigManager): Promise<string> {
-  const config = configManager.getConfig();
-  const repos = {
-      'Backend': config.backendRepoPath,
-      'Frontend': config.frontendRepoPath,
-      'Other': null
-  };
-
-  const repoKey = await select({
-    message: 'Select Project:',
-    choices: Object.keys(repos).map(key => ({
-      name: key,
-      value: key
-    })),
+export async function confirmWorkingDirectory(): Promise<string> {
+  const currentDir = process.cwd();
+  
+  console.log(`\n📁 Current working directory: ${currentDir}`);
+  
+  const confirmed = await select({
+    message: 'Continue with this directory?',
+    choices: [
+      { name: 'Yes, continue', value: true },
+      { name: 'No, exit', value: false },
+    ],
   });
 
-  let targetPath: string;
-  
-  if (repoKey === 'Other') {
-    // Prompt for custom path
-    targetPath = await input({
-      message: 'Enter the full path to the project:',
-      validate: (value: string) => {
-        if (!value.trim()) {
-          return 'Path cannot be empty';
-        }
-        return true;
-      }
-    });
-  } else {
-    const envPath = repos[repoKey];
-    if (!envPath) {
-      console.error(`\n❌ Path for ${repoKey} is not configured. Please check your environment variables.`);
-      process.exit(1);
-    }
-    targetPath = envPath;
+  if (!confirmed) {
+    console.log('\n❌ Exiting...');
+    process.exit(0);
   }
-  
-  if (!fs.existsSync(targetPath)) {
-    console.error(`❌ Path not found: ${targetPath}`);
+
+  // Verify it's a git repo
+  if (!fs.existsSync(`${currentDir}/.git`)) {
+    console.error(`\n❌ Current directory is not a git repository.`);
     process.exit(1);
   }
 
-  return targetPath;
+  return currentDir;
 }
 
 export async function selectTicket(): Promise<Issue | undefined> {
