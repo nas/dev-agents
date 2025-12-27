@@ -1,21 +1,20 @@
+import 'dotenv/config';
 import { Issue } from '@linear/sdk';
 import fs from 'fs';
 import path from 'path';
-import { execute } from '@sourcegraph/amp-sdk';
 
 interface AmpAutomatedOptions {
   task: string;
   targetPath: string;
   ticket: Issue;
   branchName: string;
-  threadId: string;
 }
 
 /**
  * Uses Amp SDK to automatically implement the task and apply changes to the repository
  */
 export async function runAmpAutomated(options: AmpAutomatedOptions): Promise<void> {
-  const { task, targetPath, ticket, branchName, threadId } = options;
+  const { task, targetPath, ticket, branchName } = options;
 
   try {
     // Check if AMP_API_KEY is available
@@ -25,7 +24,6 @@ export async function runAmpAutomated(options: AmpAutomatedOptions): Promise<voi
     }
 
     console.log(`📤 Sending implementation request to Amp...`);
-    console.log(`   Thread: ${threadId}`);
     console.log(`   Ticket: ${ticket.identifier} - ${ticket.title}`);
 
     // Call Amp SDK to handle the implementation
@@ -37,7 +35,6 @@ export async function runAmpAutomated(options: AmpAutomatedOptions): Promise<voi
 
     const ampResponse = await sendTaskToAmpSdk({
       apiKey: ampApiKey,
-      threadId,
       task,
       ticketId: ticket.identifier,
       ticketTitle: ticket.title,
@@ -59,7 +56,6 @@ export async function runAmpAutomated(options: AmpAutomatedOptions): Promise<voi
 
 interface AmpSDKRequest {
   apiKey: string;
-  threadId: string;
   task: string;
   ticketId: string;
   ticketTitle: string;
@@ -82,7 +78,7 @@ interface FileChange {
  * Sends the task to Amp SDK and waits for the implementation
  */
 async function sendTaskToAmpSdk(request: AmpSDKRequest): Promise<AmpSDKResponse> {
-  const { apiKey, threadId, task, targetPath, branchName } = request;
+  const { apiKey, task, targetPath, branchName } = request;
 
   const prompt = `Implement this task in the codebase:
 
@@ -110,14 +106,21 @@ When you're done, output a JSON block with this exact format at the end of your 
   try {
     console.log('⏳ Waiting for Amp to complete implementation...');
 
-    // Execute the task in the specified thread
+    // Dynamically import the Amp SDK to work around ESM export issues
+    const { execute } = await import('@sourcegraph/amp-sdk');
+
+    // Execute the task with API key - start a new thread (don't use continue)
+    // This ensures we use API mode instead of free mode
     for await (const message of execute({
       prompt,
       options: {
-        continue: threadId,
         cwd: targetPath,
         dangerouslyAllowAll: true,
-        logLevel: 'error'
+        logLevel: 'error',
+        // Pass API key via env 
+        env: {
+          AMP_API_KEY: apiKey
+        }
       }
     })) {
 

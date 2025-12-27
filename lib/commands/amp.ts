@@ -9,13 +9,6 @@ export async function runAmp(argv: string[]) {
   const skipTests = argv.includes('--skip-tests');
   const skipPR = argv.includes('--no-pr');
 
-  // Get current thread ID from environment (set by Amp)
-  const threadId = process.env.AMP_THREAD_ID || '';
-  if (!threadId) {
-    console.error('❌ AMP_THREAD_ID not available. This command must be run from an Amp thread.');
-    process.exit(1);
-  }
-
   const { targetPath, ticket, task, ticketDescription } = await loadTicketContext({
     requireAider: false,
     requireGh: !skipPR,
@@ -90,8 +83,7 @@ export async function runAmp(argv: string[]) {
           task,
           targetPath,
           ticket,
-          branchName,
-          threadId
+          branchName
         });
         implemented = true;
       } catch (error) {
