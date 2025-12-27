@@ -1,3 +1,4 @@
+// hello world
 import { input, select } from '@inquirer/prompts';
 import { execFileSync, execSync } from 'child_process';
 import { Issue } from '@linear/sdk';
