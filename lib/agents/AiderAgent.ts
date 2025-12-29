@@ -49,7 +49,9 @@ export class AiderAgent implements Agent {
     const args = [
       '--model', model,
       '--message', prompt,
-      '--auto-commits'
+      '--auto-commits',
+      '--yes-always',
+      '--no-gitignore'
     ];
 
     args.push(...this.configManager.getApiKeyArgs(model));

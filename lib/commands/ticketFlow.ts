@@ -45,6 +45,16 @@ export function ensureWorktree(targetPath: string, branchName: string): string {
         cwd: targetPath,
         stdio: 'inherit'
       });
+      
+      // Run npm install in the new worktree if package.json exists
+      const packageJsonPath = path.join(worktreePath, 'package.json');
+      if (fs.existsSync(packageJsonPath)) {
+        console.log(`\n📦 Installing dependencies in worktree...`);
+        execSync('npm install', {
+          cwd: worktreePath,
+          stdio: 'inherit'
+        });
+      }
     } catch {
       console.error('❌ Git Error - failed to create worktree.');
       process.exit(1);
