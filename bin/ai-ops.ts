@@ -1,5 +1,26 @@
 #!/usr/bin/env npx tsx
-import 'dotenv/config';
+import { config } from 'dotenv';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { existsSync } from 'fs';
+
+// Load .env file from project root, regardless of current working directory
+// Since we're using ESM with tsx, get the script directory from import.meta.url
+const scriptDir = dirname(fileURLToPath(import.meta.url));
+// Go up one level from bin/ to project root
+const projectRoot = resolve(scriptDir, '..');
+// Load .env from project root
+const envPath = resolve(projectRoot, '.env');
+if (existsSync(envPath)) {
+  config({ path: envPath });
+} else {
+  // Fallback: try current working directory
+  console.warn('No .env file found for dev-agents project, using environment variables');
+  config();
+}
+
+config({ path: resolve(projectRoot, '.env') });
+
 import { runFeature } from '../lib/commands/aider';
 import { runConductor } from '../lib/commands/conductor';
 import { runCodex } from '../lib/commands/codex';
