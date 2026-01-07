@@ -75,21 +75,28 @@ Output only the plan.`;
     const prompt = `Task:
 ${task}
 
-Approved plan:
+Approved Implementation Plan:
 ${plan}
 
-Implement the plan in this repository.
-Follow existing code style and patterns.
-If tests are available, run them and fix failures.`;
+Now implement this feature according to the approved plan above.
+Do not ask for confirmation or propose additional steps; proceed to apply changes immediately.
+If you would normally ask to confirm, treat this as already confirmed and continue.
 
-    const args = this.buildArgs(['exec', '-C', this.options.cwd, '--full-auto', '-']);
+IMPORTANT INSTRUCTIONS:
+1. Create any NEW files mentioned in the plan that don't exist yet (create the full directory structure if needed)
+2. Modify any EXISTING files mentioned in the plan
+3. Follow the exact code style and patterns found in the existing codebase
+4. Ensure all steps outlined in the plan are completed`;
 
-    // Use piped stdio so input can be sent properly, but forward output to parent
-    await ProcessRunner.run('codex', args, { 
-        input: prompt,
-        cwd: this.options.cwd,
-        onOutput: (data) => process.stdout.write(data),
-        onErrorOutput: (data) => process.stderr.write(data)
+    // Use dangerously-bypass-approvals-and-sandbox for implementation since we're in an isolated worktree
+    // This ensures codex actually makes changes without getting stuck on approval prompts
+    const args = this.buildArgs(['exec', '-C', this.options.cwd, '--dangerously-bypass-approvals-and-sandbox', prompt]);
+
+    await ProcessRunner.run('codex', args, {
+      cwd: this.options.cwd,
+      onOutput: (data) => process.stdout.write(data),
+      onErrorOutput: (data) => process.stderr.write(data),
+      input: 'yes\n'
     });
   }
 }
