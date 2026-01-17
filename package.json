@@ -12,6 +12,7 @@
     "aider": "NODE_OPTIONS='--no-deprecation' npx tsx bin/ai-ops.ts aider",
     "conductor": "npx tsx bin/ai-ops.ts conductor",
     "codex": "npx tsx bin/ai-ops.ts codex",
+    "claude": "npx tsx bin/ai-ops.ts claude",
     "amp": "npx tsx bin/ai-ops.ts amp",
     "agent": "npx tsx bin/ai-ops.ts agent"
   },
