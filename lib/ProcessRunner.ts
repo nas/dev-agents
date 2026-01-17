@@ -58,12 +58,11 @@ export class ProcessRunner {
 
   static async runAndCapture(command: string, args: string[], options: SpawnOptions & { input?: string }): Promise<string> {
     let output = '';
-    let errorOutput = '';
-    
+
     await this.run(command, args, {
         ...options,
-        onOutput: (data) => { output += data; process.stdout.write(data); },
-        onErrorOutput: (data) => { errorOutput += data; process.stderr.write(data); },
+        onOutput: (data) => { output += data; },
+        onErrorOutput: () => {},
         input: options.input
     });
 

@@ -47,7 +47,8 @@ Output only the plan.`;
     const args = this.buildArgs(['--print', '--dangerously-skip-permissions', '-p', prompt]);
 
     const plan = await ProcessRunner.runAndCapture('claude', args, {
-      cwd: this.options.cwd
+      cwd: this.options.cwd,
+      stdio: ['ignore', 'pipe', 'pipe'] // Close stdin to prevent hanging
     });
 
     return plan.trim();
@@ -75,6 +76,7 @@ IMPORTANT INSTRUCTIONS:
 
     await ProcessRunner.run('claude', args, {
       cwd: this.options.cwd,
+      stdio: ['ignore', 'pipe', 'pipe'], // Close stdin to prevent hanging
       onOutput: (data) => process.stdout.write(data),
       onErrorOutput: (data) => process.stderr.write(data)
     });
