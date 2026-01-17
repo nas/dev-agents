@@ -1,6 +1,7 @@
 import { select } from '@inquirer/prompts';
 import { runConductor } from './conductor';
 import { runCodex } from './codex';
+import { runClaude } from './claude';
 import { runFeature } from './aider';
 import { runAmp } from './amp';
 import { showHelp } from '../../utils';
@@ -13,8 +14,8 @@ type AgentChoice = {
 
 const AGENTS: AgentChoice[] = [
   { name: 'Aider Builder', runner: runFeature },
-  { 
-    name: 'Gemini Conductor', 
+  {
+    name: 'Gemini Conductor',
     runner: runConductor,
     models: [
       'gemini-2.5-flash',
@@ -24,14 +25,23 @@ const AGENTS: AgentChoice[] = [
       'gemini-3-pro-preview'
     ]
   },
-  { 
-    name: 'Codex', 
+  {
+    name: 'Codex',
     runner: runCodex,
     models: [
       'gpt-5.2-codex',
       'gpt-5.1-codex-max',
       'gpt-5.1-codex-mini',
       'gpt-5.2'
+    ]
+  },
+  {
+    name: 'Claude',
+    runner: runClaude,
+    models: [
+      'claude-sonnet-4-20250514',
+      'claude-opus-4-20250514',
+      'claude-3-7-sonnet-20250219'
     ]
   },
   { name: 'Amp Agent', runner: runAmp }

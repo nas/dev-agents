@@ -24,6 +24,7 @@ config({ path: resolve(projectRoot, '.env') });
 import { runFeature } from '../lib/commands/aider';
 import { runConductor } from '../lib/commands/conductor';
 import { runCodex } from '../lib/commands/codex';
+import { runClaude } from '../lib/commands/claude';
 import { runAmp } from '../lib/commands/amp';
 import { runAgent } from '../lib/commands/agent';
 import { showHelp } from '../utils';
@@ -45,6 +46,9 @@ async function main() {
       break;
     case 'codex':
       await runCodex(process.argv.slice(2));
+      break;
+    case 'claude':
+      await runClaude(process.argv.slice(2));
       break;
     case 'amp':
       await runAmp(process.argv.slice(2));
