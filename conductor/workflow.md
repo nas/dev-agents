@@ -62,7 +62,7 @@
 
 ## Codex Flags
 
-- `--model <name>`: Override the Codex model. Supported: `gpt-5.2-codex`, `gpt-5.1-codex-max`, `gpt-5.1-codex-mini`, `gpt-5.2`.
+- `--model <name>`: Override the Codex model. Supported: `gpt-5.3-codex`, `gpt-5.2-codex`, `gpt-5.1-codex-max`, `gpt-5.1-codex-mini`, `gpt-5.2`.
 - `--profile <name>`: Use a Codex profile.
 - `--no-pr`: Skip push/PR creation.
 
@@ -70,4 +70,3 @@
 
 - `--skip-tests`: Skip the test verification phase.
 - `--no-pr`: Skip push/PR creation.
-

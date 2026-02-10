@@ -63,7 +63,7 @@ Notes:
   - Example: npx tsx bin/ai-ops.ts agent -- --model gpt-5.2
   - Example: npm run agent -- --model gemini-2.5-flash
   - Example: npm run conductor -- --model gemini-2.5-flash
-  - Example: npm run codex -- --model gpt-5.2-codex
+  - Example: npm run codex -- --model gpt-5.3-codex
 
 For more information, see the README.
 `);
