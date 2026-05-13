@@ -2,6 +2,7 @@ import { select } from '@inquirer/prompts';
 import { runConductor } from './conductor';
 import { runCodex } from './codex';
 import { runClaude } from './claude';
+import { runOpencode } from './opencode';
 import { runFeature } from './aider';
 import { runAmp } from './amp';
 import { showHelp } from '../../utils';
@@ -12,39 +13,55 @@ type AgentChoice = {
   models?: string[]; // Available models for this agent
 };
 
+const GEMINI_MODELS = [
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite',
+  'gemini-2.5-pro',
+  'gemini-3-flash-preview',
+  'gemini-3-pro-preview'
+];
+
+const CODEX_MODELS = [
+  'gpt-5.3-codex',
+  'gpt-5.2-codex',
+  'gpt-5.1-codex-max',
+  'gpt-5.1-codex-mini',
+  'gpt-5.2'
+];
+
+const CLAUDE_MODELS = [
+  'claude-opus-4-6',
+  'claude-opus-4-20250514',
+  'claude-sonnet-4-20250514',
+  'claude-3-7-sonnet-20250219'
+];
+
+const DEEPSEEK_MODELS = [
+  'deepseek-chat',
+  'deepseek-coder'
+];
+
 const AGENTS: AgentChoice[] = [
   { name: 'Aider Builder', runner: runFeature },
   {
     name: 'Gemini Conductor',
     runner: runConductor,
-    models: [
-      'gemini-2.5-flash',
-      'gemini-2.5-flash-lite',
-      'gemini-2.5-pro',
-      'gemini-3-flash-preview',
-      'gemini-3-pro-preview'
-    ]
+    models: GEMINI_MODELS
   },
   {
     name: 'Codex',
     runner: runCodex,
-    models: [
-      'gpt-5.3-codex',
-      'gpt-5.2-codex',
-      'gpt-5.1-codex-max',
-      'gpt-5.1-codex-mini',
-      'gpt-5.2'
-    ]
+    models: CODEX_MODELS
   },
   {
     name: 'Claude',
     runner: runClaude,
-    models: [
-      'claude-opus-4-6',
-      'claude-opus-4-20250514',
-      'claude-sonnet-4-20250514',
-      'claude-3-7-sonnet-20250219'
-    ]
+    models: CLAUDE_MODELS
+  },
+  {
+    name: 'OpenCode',
+    runner: runOpencode,
+    models: [...CODEX_MODELS, ...GEMINI_MODELS, ...DEEPSEEK_MODELS, ...CLAUDE_MODELS]
   },
   { name: 'Amp Agent', runner: runAmp }
 ];

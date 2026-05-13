@@ -16,6 +16,7 @@ Commands:
   aider       Start the Aider feature builder
   conductor   Start the Gemini conductor
   codex       Start the Codex builder
+  opencode    Start the OpenCode builder
   amp         Start the Amp agent
   agent       Choose an agent to run
 
@@ -42,6 +43,11 @@ Codex Options:
   --profile <name> Use a Codex profile
   --no-pr          Skip creating a PR at the end
 
+OpenCode Options:
+  --model <name>   Override the OpenCode model
+  --agent <name>   Override the OpenCode agent
+  --no-pr          Skip creating a PR at the end
+
 Amp Options:
   --skip-tests     Skip running tests after implementation
   --no-pr          Skip creating a PR at the end
@@ -64,6 +70,7 @@ Notes:
   - Example: npm run agent -- --model gemini-2.5-flash
   - Example: npm run conductor -- --model gemini-2.5-flash
   - Example: npm run codex -- --model gpt-5.3-codex
+  - Example: npm run opencode -- --model gpt-5
 
 For more information, see the README.
 `);

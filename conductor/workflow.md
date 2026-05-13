@@ -15,12 +15,14 @@
    - `npm run conductor` or `npx tsx bin/ai-ops.ts conductor` (Gemini Conductor)
    - `npm run aider` or `npx tsx bin/ai-ops.ts aider` (Aider builder)
    - `npm run codex` or `npx tsx bin/ai-ops.ts codex` (Codex)
+   - `npm run opencode` or `npx tsx bin/ai-ops.ts opencode` (OpenCode)
    - `npm run amp` or `npx tsx bin/ai-ops.ts amp` (Amp Agent)
    - `npm run agent` or `npx tsx bin/ai-ops.ts agent` (pick an agent interactively)
 2. **Validate environment:**
    - `LINEAR_API_KEY` is required for ticket selection.
    - `gh` is required unless `--no-pr` is set.
    - `AMP_API_KEY` is required for automated Amp implementation.
+   - `opencode` is required for the OpenCode flow.
    - `aider` is only required for the Aider flow.
    - Missing AI API keys generate warnings but do not block startup.
 3. **Select the target repo:**
@@ -38,6 +40,7 @@
 7. **Implementation:**
    - The agent executes the approved plan in the selected repo.
    - Conductor uses `gemini`, Codex uses `codex`, Aider uses `aider`, and Amp uses the Amp SDK.
+   - OpenCode uses `opencode`.
 8. **Tests (Aider and Amp):**
    - Runs `npm run test` in the target repo unless `--skip-tests` is set.
    - If tests fail, Aider can attempt fixes with user confirmation after repeated failures.
@@ -69,4 +72,10 @@
 ## Amp Flags
 
 - `--skip-tests`: Skip the test verification phase.
+- `--no-pr`: Skip push/PR creation.
+
+## OpenCode Flags
+
+- `--model <name>`: Override the OpenCode model.
+- `--agent <name>`: Override the OpenCode agent.
 - `--no-pr`: Skip push/PR creation.

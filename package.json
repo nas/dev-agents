@@ -13,6 +13,7 @@
     "conductor": "npx tsx bin/ai-ops.ts conductor",
     "codex": "npx tsx bin/ai-ops.ts codex",
     "claude": "npx tsx bin/ai-ops.ts claude",
+    "opencode": "npx tsx bin/ai-ops.ts opencode",
     "amp": "npx tsx bin/ai-ops.ts amp",
     "agent": "npx tsx bin/ai-ops.ts agent"
   },
@@ -22,6 +23,7 @@
   "dependencies": {
     "@inquirer/select": "^5.0.2",
     "@linear/sdk": "^65.2.0",
+    "@opencode-ai/sdk": "^0.13.9",
     "@sourcegraph/amp-sdk": "^0.1.0-20251227041641-ge216bbf",
     "dotenv": "^17.2.3",
     "inquirer": "^13.0.2"

@@ -54,6 +54,7 @@ describe('utils', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       showHelp();
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('AI OPS CLI'));
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('opencode'));
       consoleSpy.mockRestore();
     });
   });

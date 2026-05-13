@@ -25,6 +25,7 @@ import { runFeature } from '../lib/commands/aider';
 import { runConductor } from '../lib/commands/conductor';
 import { runCodex } from '../lib/commands/codex';
 import { runClaude } from '../lib/commands/claude';
+import { runOpencode } from '../lib/commands/opencode';
 import { runAmp } from '../lib/commands/amp';
 import { runAgent } from '../lib/commands/agent';
 import { showHelp } from '../utils';
@@ -49,6 +50,9 @@ async function main() {
       break;
     case 'claude':
       await runClaude(process.argv.slice(2));
+      break;
+    case 'opencode':
+      await runOpencode(process.argv.slice(2));
       break;
     case 'amp':
       await runAmp(process.argv.slice(2));

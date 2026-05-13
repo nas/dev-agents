@@ -90,12 +90,14 @@ export async function loadTicketContext(options: {
   requireAider?: boolean;
   requireGh?: boolean;
   requireLinear?: boolean;
+  requireOpenCode?: boolean;
 } = {}): Promise<TicketContext> {
   const configManager = new ConfigManager();
   const envErrors = configManager.validate({
     requireAider: options.requireAider,
     requireGh: options.requireGh,
-    requireLinear: options.requireLinear ?? true
+    requireLinear: options.requireLinear ?? true,
+    requireOpenCode: options.requireOpenCode
   });
 
   if (envErrors.length > 0) {

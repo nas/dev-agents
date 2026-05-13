@@ -40,12 +40,14 @@ export class ConfigManager {
     requireAider?: boolean;
     requireGh?: boolean;
     requireLinear?: boolean;
+    requireOpenCode?: boolean;
   } = {}): string[] {
     const errors: string[] = [];
     const warnings: string[] = [];
     const requireAider = options.requireAider ?? true;
     const requireGh = options.requireGh ?? true;
     const requireLinear = options.requireLinear ?? false;
+    const requireOpenCode = options.requireOpenCode ?? false;
 
     if (requireLinear && !this.config.linearApiKey) {
       errors.push('LINEAR_API_KEY environment variable is not set');
@@ -69,6 +71,14 @@ export class ConfigManager {
         execSync('which gh', { stdio: 'pipe' });
       } catch {
         errors.push('GitHub CLI (gh) not found. Install from: https://cli.github.com');
+      }
+    }
+
+    if (requireOpenCode) {
+      try {
+        execSync('which opencode', { stdio: 'pipe' });
+      } catch {
+        errors.push('opencode command not found. Install OpenCode CLI and ensure it is on PATH');
       }
     }
 
